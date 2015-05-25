@@ -1,0 +1,58 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="ai.com.audionce.LoginActivity"
+    android:background="@color/white">
+
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/login_username"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:hint="@string/username"
+        android:layout_margin="16dp"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:id="@+id/login_password"
+        android:layout_below="@+id/login_username"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="42dp"
+        android:layout_alignParentEnd="true"
+        android:hint="@string/pw"
+        android:layout_margin="16dp"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/login"
+        android:id="@+id/button"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="@color/ab_pink"
+        android:onClick="login"
+        android:layout_below="@+id/login_password"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:background="@null"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/no_account"
+        android:id="@+id/no_account_textview"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:textColor="@color/light_gray"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:onClick="hasNoAccountPress"/>
+</RelativeLayout>

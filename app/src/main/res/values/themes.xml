@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AudBar01"
+        parent="@style/Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:actionBarStyle">@style/AB01</item>
+        <item name="actionBarStyle">@style/AB01</item>
+    </style>
+
+    <style name="AB01"
+        parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/ab_pink</item>
+        <item name="background">@color/ab_pink</item>
+    </style>
+</resources>

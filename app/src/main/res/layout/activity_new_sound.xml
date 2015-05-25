@@ -1,0 +1,78 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="ai.com.audionce.NewSoundActivity"
+    android:background="@color/white">
+
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="225dp"
+        android:id="@+id/imageView"
+        android:scaleType="fitXY"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:src="@drawable/soundwave"/>
+
+    <ImageButton
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:src="@android:drawable/ic_btn_speak_now"
+        android:tint="@color/black"
+        android:id="@+id/record_button"
+        android:layout_marginStart="48dp"
+        android:layout_alignBottom="@+id/imageView"
+        android:layout_alignParentStart="true"
+        android:background="@null"/>
+
+    <ImageButton
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:id="@+id/save_button"
+        android:layout_marginRight="48dp"
+        android:tint="@color/black"
+        android:src="@android:drawable/ic_menu_save"
+        android:layout_alignBottom="@+id/record_button"
+        android:layout_alignParentEnd="true"
+        android:background="@null"/>
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/new_sound_name"
+        android:textStyle="italic"
+        android:paddingLeft="12dp"
+        android:hint="@string/new_sound_name_hint"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:focusable="false"/>
+
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:id="@+id/pub_or_priv_switch"
+        android:layout_below="@+id/new_sound_name"
+        android:textStyle="italic"
+        android:textOff="@string/priv"
+        android:textOn="@string/pub"
+        android:layout_centerHorizontal="true" />
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/new_sound_friend_share_view"
+        android:layout_below="@+id/pub_or_priv_switch"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="31dp" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/playback_button"
+        android:src="@android:drawable/ic_media_play"
+        android:tint="@color/black"
+        android:background="@null"
+        android:layout_alignTop="@+id/save_button"
+        android:layout_centerHorizontal="true" />
+</RelativeLayout>

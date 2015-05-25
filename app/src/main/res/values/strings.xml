@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Audionce</string>
+    <string name="username">Username</string>
+    <string name="pw">Password</string>
+    <string name="cpw">Confirm Password</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_login">Audionce</string>
+    <string name="title_activity_signup">Audionce</string>
+    <string name="title_activity_hub">Audionce</string>
+    <string name="title_activity_profile_main">Profile</string>
+    <string name="friends">Friends</string>
+    <string name="add_sound">Add Sound</string>
+    <string name="logout">Logout</string>
+    <string name="no_account">Don\'t have an account? Sign up.</string>
+    <string name="already_account">Already have an account? Log in.</string>
+    <string name="no_sounds">No Sounds To Display</string>
+    <string name="title_activity_view_friends">ViewFriendsActivity</string>
+    <string name="remove">(remove)</string>
+    <string name="title_activity_new_sound">Create A Sound</string>
+    <string name="edit_title">Edit Name</string>
+    <string name="edit_name_hint">Enter new name</string>
+    <string name="search_title">Search</string>
+    <string name="title_activity_view_friends_activity_two">ViewFriendsActivityTwo</string>
+    <string name="title_activity_view_friends_activity_three">Friends</string>
+    <string name="add_friend">(add)</string>
+    <string name="search_hint">Find Friends...</string>
+    <string name="new_sound_name_hint">title</string>
+    <string name="pub">public</string>
+    <string name="priv">private</string>
+</resources>

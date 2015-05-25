@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="ai.com.audionce.HubActivity">
+
+    <item android:id="@+id/action_settings"
+        android:title="@string/action_settings"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/log_out"
+        android:title="@string/logout"/>
+
+
+    <item android:id="@+id/edit_profile"
+        android:title=""
+        android:icon="@android:drawable/ic_menu_edit"
+        app:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/new_sound_from_hub"
+        android:title=""
+        android:icon="@android:drawable/ic_menu_add"
+        app:showAsAction="ifRoom"/>
+</menu>
