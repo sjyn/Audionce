@@ -83,4 +83,16 @@ public final class Adapters {
             return cv;
         }
     }
+
+    public static class ProfileSoundsAdapter extends ArrayAdapter<Sound> {
+        private List<Sound> sounds;
+
+        public ProfileSoundsAdapter(Context c, List<Sound> snds){
+            super(c,R.layout.sounds_list_item);
+            this.sounds = snds;
+        }
+
+
+
+    }
 }

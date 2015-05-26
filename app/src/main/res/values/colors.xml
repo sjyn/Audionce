@@ -5,4 +5,6 @@
     <color name="light_gray">#939393</color>
     <color name="red">#DF0101</color>
     <color name="black">#000000</color>
+    <color name="clear">#00FFFFFF</color>
+    <color name="light_red">#B3DF0101</color>
 </resources>
