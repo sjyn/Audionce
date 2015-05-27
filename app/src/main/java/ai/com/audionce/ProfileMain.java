@@ -62,6 +62,7 @@ public class ProfileMain extends AppCompatActivity {
             Environment.DIRECTORY_PICTURES) + "/picture.png";
     private BitmapFactory.Options opts;
     private static Dialog chooser,editor;
+    private Adapters.ProfileSoundsAdapter adapter;
 
 
     @Override
@@ -97,22 +98,22 @@ public class ProfileMain extends AppCompatActivity {
             @Override
             public void done(byte[] bytes, ParseException e) {
                 if (e == null) {
-                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length,opts);
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
                     profilePic.setBackground(new BitmapDrawable(getResources(), bmp));
                 }
             }
         });
         ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
-        fQue.whereEqualTo("user",currentUser);
+        fQue.whereEqualTo("user", currentUser);
         fQue.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> list, ParseException e) {
-                if(e == null){
+                if (e == null) {
                     ParseObject lst = list.get(0);
-                    List<ParseUser> fnds = (List<ParseUser>)lst.get("all_friends");
-                    friends.setText("Friends (" + fnds.size() +")");
+                    List<ParseUser> fnds = (List<ParseUser>) lst.get("all_friends");
+                    friends.setText("Friends (" + fnds.size() + ")");
                 } else {
-                    Log.e("AUD",Log.getStackTraceString(e));
+                    Log.e("AUD", Log.getStackTraceString(e));
                 }
             }
         });
@@ -131,7 +132,7 @@ public class ProfileMain extends AppCompatActivity {
         addSound.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(),NewSoundActivity.class));
+                startActivity(new Intent(getApplicationContext(), NewSoundActivity.class));
             }
         });
         username.setOnClickListener(new View.OnClickListener() {
@@ -140,10 +141,31 @@ public class ProfileMain extends AppCompatActivity {
                 createAndDisplayUsernameEditor();
             }
         });
-        if(((ArrayList)currentUser.get("sounds")).isEmpty()){
+        final ArrayList<ParseObject> userSounds = (ArrayList<ParseObject>)currentUser.get("sounds");
+        if(userSounds.isEmpty()){
             noSounds.setVisibility(View.VISIBLE);
         } else {
-//            sounds.setAdapter(new SoundsArrayAdapter<>(this,0,(ArrayList)currentUser.get("sounds")));
+            new AsyncTask<Void,Void,Boolean>(){
+                private ArrayList<ParseObject> cpy = userSounds;
+                private ArrayList<Sound> adapterList = new ArrayList<>();
+
+                @Override
+                public Boolean doInBackground(Void... voids){
+                    for(ParseObject po : cpy){
+                        adapterList.add(Sound.parseSound(po));
+                    }
+                    return true;
+                }
+
+                @Override
+                public void onPostExecute(Boolean res){
+                    if(res){
+                        adapter = new Adapters.ProfileSoundsAdapter(getApplicationContext(),adapterList);
+                        sounds.setAdapter(adapter);
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            }.execute();
             noSounds.setVisibility(View.GONE);
         }
     }

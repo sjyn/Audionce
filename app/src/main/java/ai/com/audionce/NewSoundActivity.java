@@ -170,6 +170,13 @@ public class NewSoundActivity extends AppCompatActivity {
                     mp.start();
                 }
             });
+            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    mp.release();
+                    mp = null;
+                }
+            });
             player.prepareAsync();
         } catch (Exception ex){
             Log.e("AUD",Log.getStackTraceString(ex));
@@ -183,63 +190,63 @@ public class NewSoundActivity extends AppCompatActivity {
         ((TextView)view.findViewById(R.id.edit_name_title)).setText("New Sound Name");
         final EditText namer = (EditText)view.findViewById(R.id.new_name_field);
         namer.setHint("new sound");
-        builder.setView(view)
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        new AsyncTask<Void,Void,Object[]>(){
-                            private final String cDir = getCacheDir().getPath() + "tmp_mus.mp3";
-                            private ParseUser tUser = currUser;
+        builder.setView(view);
+        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                new AsyncTask<Void, Void, Object[]>() {
+                    private final String cDir = getCacheDir().getPath() + "tmp_mus.mp3";
+                    private ParseUser tUser = currUser;
 
-                            @Override
-                            public Object[] doInBackground(Void... v){
-                                Object[] ret = new Object[2];
-                                try{
-                                    File f = new File(cDir);
-                                    byte[] array = new byte[(int)f.length()];
-                                    FileInputStream fis = new FileInputStream(f);
-                                    fis.read(array);
-                                    fis.close();
-                                    ParseObject po = new ParseObject("Sounds");
-                                    ParseFile pf = new ParseFile("" +
-                                            (int)(Math.random() * Integer.MAX_VALUE) + ".mp3",array);
-                                    pf.save();
-                                    ret[0] = pf;
-                                    ret[1] = pf.getUrl();
-                                    po.put("file", pf);
-                                    po.put("title", namer.getText().toString());
-                                    po.put("location", new ParseGeoPoint());
-                                    po.save();
-                                    tUser.fetchIfNeeded();
-                                    tUser.add("sounds", po);
-                                    tUser.save();
-                                    mr.reset();
-                                } catch(Exception ex){
-                                    Log.e("AUD",Log.getStackTraceString(ex));
-                                    return null;
-                                }
-                                return ret;
-                            }
-
-                            @Override
-                            public void onPostExecute(Object[] res){
-                                if(res != null){
-                                    tFileURL = res[1].toString();
-                                    Toast.makeText(getApplicationContext(),"Sound Saved!",Toast.LENGTH_SHORT).show();
-                                    Log.e("AUD","Saved sound");
-                                } else {
-                                    Log.e("AUD","didnt save sound");
-                                }
-                            }
-                        }.execute();
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                    public Object[] doInBackground(Void... v) {
+                        Object[] ret = new Object[2];
+                        try {
+                            File f = new File(cDir);
+                            byte[] array = new byte[(int) f.length()];
+                            FileInputStream fis = new FileInputStream(f);
+                            fis.read(array);
+                            fis.close();
+                            ParseObject po = new ParseObject("Sounds");
+                            ParseFile pf = new ParseFile("" +
+                                    (int) (Math.random() * Integer.MAX_VALUE) + ".mp3", array);
+                            pf.save();
+                            ret[0] = pf;
+                            ret[1] = pf.getUrl();
+                            po.put("file", pf);
+                            po.put("title", namer.getText().toString());
+                            po.put("location", new ParseGeoPoint(37.27, -79.94));
+                            po.save();
+                            tUser.fetchIfNeeded();
+                            tUser.add("sounds", po);
+                            tUser.save();
+                            mr.reset();
+                        } catch (Exception ex) {
+                            Log.e("AUD", Log.getStackTraceString(ex));
+                            return null;
+                        }
+                        return ret;
                     }
-                });
+
+                    @Override
+                    public void onPostExecute(Object[] res) {
+                        if (res != null) {
+                            tFileURL = res[1].toString();
+                            Toast.makeText(getApplicationContext(), "Sound Saved!", Toast.LENGTH_SHORT).show();
+                            Log.e("AUD", "Saved sound");
+                        } else {
+                            Log.e("AUD", "didnt save sound");
+                        }
+                    }
+                }.execute();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
         builder.create().show();
     }
 }

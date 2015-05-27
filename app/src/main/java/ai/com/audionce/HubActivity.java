@@ -10,6 +10,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +31,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.FindCallback;
 import com.parse.Parse;
@@ -38,9 +41,8 @@ import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
-import com.parse.SaveCallback;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 
@@ -48,6 +50,8 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private GoogleMap tMap;
     private int i;
+    private LatLng mLoc;
+    private boolean isSoundPlaying;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +59,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_hub);
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
+        isSoundPlaying = false;
         if(savedInstanceState == null)
             i = 0;
         else
@@ -66,12 +71,48 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap map){
         tMap = map;
         tMap.setMyLocationEnabled(true);
+        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                LatLng markerLoc = marker.getPosition();
+                Location mark = new Location("");
+                mark.setLongitude(markerLoc.longitude);
+                mark.setLatitude(markerLoc.latitude);
+                Location myLoc = new Location("");
+                myLoc.setLatitude(mLoc.latitude);
+                myLoc.setLongitude(mLoc.longitude);
+                Log.e("AUD", "Marker tapped; you are " + mark.distanceTo(myLoc) + "m away");
+                if (mark.distanceTo(myLoc) <= 40) {
+                    ParseQuery<ParseObject> gSound = ParseQuery.getQuery("Sounds");
+                    gSound.whereEqualTo("location",
+                            new ParseGeoPoint(mark.getLatitude(), mark.getLongitude()));
+                    gSound.findInBackground(new FindCallback<ParseObject>() {
+                        @Override
+                        public void done(List<ParseObject> list, ParseException e) {
+                            if(e == null){
+                                Sound s = Sound.parseSound(list.get(0));
+                                if(!isSoundPlaying) {
+                                    try {
+                                        playSound(s);
+                                        Log.e("AUD","Playing Sound");
+                                    } catch (IOException ioe){
+                                        showToast("Error Playing Media");
+                                        Log.e("AUD", Log.getStackTraceString(ioe));
+                                    }
+                                }
+                            } else {
+                                Log.e("AUD",Log.getStackTraceString(e));
+                            }
+                        }
+                    });
+                }
+                return false;
+            }
+        });
         tMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
-                Log.e("AUD", "cam changed");
                 if (i >= 1) {
-                    tMap.clear();
                     LatLngBounds bnds = tMap.getProjection().getVisibleRegion().latLngBounds;
                     ParseGeoPoint sw = new ParseGeoPoint(bnds.southwest.latitude, bnds.southwest.longitude);
                     ParseGeoPoint ne = new ParseGeoPoint(bnds.northeast.latitude, bnds.northeast.longitude);
@@ -102,9 +143,10 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         tMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
             @Override
             public void onMyLocationChange(Location location) {
-                if(location != null && i == 0){
-                    LatLng lat = new LatLng(location.getLatitude(),location.getLongitude());
-                    tMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lat,17),4000,null);
+                mLoc = new LatLng(location.getLatitude(), location.getLongitude());
+                Log.e("AUD","lat: " + mLoc.latitude + " long: " + mLoc.longitude);
+                if (i == 0) {
+                    tMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLoc, 17), 4000, null);
                     i++;
                 }
             }
@@ -135,5 +177,31 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void playSound(Sound s) throws IOException {
+        MediaPlayer mp = new MediaPlayer();
+        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mp.setDataSource(s.getUrl());
+        mp.prepareAsync();
+        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
+                isSoundPlaying = true;
+            }
+        });
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mp.release();
+                mp = null;
+                isSoundPlaying = false;
+            }
+        });
+    }
+
+    private void showToast(String s){
+        Toast.makeText(this,s,Toast.LENGTH_SHORT).show();
     }
 }

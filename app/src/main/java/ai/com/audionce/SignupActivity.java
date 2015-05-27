@@ -45,7 +45,7 @@ public class SignupActivity extends AppCompatActivity {
         un = (EditText)findViewById(R.id.username_field);
         pw1 = (EditText)findViewById(R.id.pw1_field);
         pw2 = (EditText)findViewById(R.id.pw2_field);
-        su = (Button)findViewById(R.id.signup_button);
+        su = (Button)findViewById(R.id.new_account);
 
     }
 
@@ -77,7 +77,7 @@ public class SignupActivity extends AppCompatActivity {
             final ParseUser user = new ParseUser();
             user.setPassword(pwa);
             user.setUsername(username);
-            user.put("sounds", new ArrayList<>());
+            user.put("sounds", new ArrayList<ParseObject>());
             Bitmap picture = BitmapFactory.decodeResource(getResources(),R.drawable.def_profile);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             picture.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -87,11 +87,13 @@ public class SignupActivity extends AppCompatActivity {
                 public void done(ParseException e) {
                     if (e == null) {
                         user.put("profile_picture", file);
+                        //TODO -- FIX THREAD
                         user.signUpInBackground(new SignUpCallback() {
                             @Override
                             public void done(ParseException e) {
                                 if (e == null) {
                                     ParseObject ft = new ParseObject("FriendTable");
+                                    ParseObject snds = new ParseObject("Sounds");
                                     ft.put("user",user);
                                     ft.put("all_friends", new ArrayList<ParseUser>());
                                     try {
@@ -114,7 +116,6 @@ public class SignupActivity extends AppCompatActivity {
                                         }
                                     });
                                 } else {
-//                                    showToast("Failed To Create Account");
                                     showToast(e.getMessage());
                                     Log.e("AUD",Log.getStackTraceString(e));
                                 }

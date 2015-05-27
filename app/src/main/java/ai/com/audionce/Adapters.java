@@ -2,15 +2,20 @@ package ai.com.audionce;
 
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.IOException;
 import java.util.List;
 
 public final class Adapters {
@@ -86,13 +91,63 @@ public final class Adapters {
 
     public static class ProfileSoundsAdapter extends ArrayAdapter<Sound> {
         private List<Sound> sounds;
+        private boolean isSoundPlaying;
+        private MediaPlayer player;
 
         public ProfileSoundsAdapter(Context c, List<Sound> snds){
             super(c,R.layout.sounds_list_item);
             this.sounds = snds;
+            isSoundPlaying = false;
+            player = new MediaPlayer();
         }
 
+        private static class Holder{
+            TextView tv;
+            ImageButton button;
+        }
 
-
+        @Override
+        public View getView(final int pos, View cv, ViewGroup parent){
+            if(cv == null){
+                LayoutInflater inflater = LayoutInflater.from(super.getContext());
+                cv = inflater.inflate(R.layout.sounds_list_item,parent,false);
+                Holder h = new Holder();
+                h.tv = (TextView)cv.findViewById(R.id.sound_title);
+                h.button = (ImageButton)cv.findViewById(R.id.play_sound_button);
+                cv.setTag(h);
+            }
+            Holder holder = (Holder)cv.getTag();
+            holder.tv.setText(sounds.get(pos).getTitle());
+            holder.button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!isSoundPlaying) {
+                        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(MediaPlayer mp) {
+                                mp.start();
+                                isSoundPlaying = true;
+                            }
+                        });
+                        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+                                player.release();
+                                player = new MediaPlayer();
+                                isSoundPlaying = false;
+                            }
+                        });
+                        try {
+                            player.setDataSource(sounds.get(pos).getUrl());
+                            player.prepareAsync();
+                        } catch (IOException ioe) {
+                            Log.e("AUD",Log.getStackTraceString(ioe));
+                        }
+                    }
+                }
+            });
+            return cv;
+        }
     }
 }
