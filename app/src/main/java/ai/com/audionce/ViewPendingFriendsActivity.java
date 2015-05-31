@@ -24,7 +24,9 @@ import com.parse.ParseUser;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class ViewPendingFriendsActivity extends AppCompatActivity {
@@ -44,24 +46,8 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
         adaList = searchedFriends = new ArrayList<>();
         Intent didSearch = getIntent();
         if(didSearch == null || !Intent.ACTION_SEARCH.equals(didSearch.getAction())) {
-            ParseQuery<ParseObject> pending = ParseQuery.getQuery("PendingTable")
-                    .whereEqualTo("to", currUser)
-                    .whereEqualTo("from", currUser);
-            pending.findInBackground(new FindCallback<ParseObject>() {
-                @Override
-                public void done(List<ParseObject> list, ParseException e) {
-                    if (e == null && !list.isEmpty()) {
-                        for (ParseObject po : list) {
-                            Friend f = Friend.parseFriend((ParseUser) po);
-                            f.setType("pending");
-                            adaList.add(f);
-                        }
-                        Collections.sort(adaList);
-                        adapter = new Adapters.FriendAdapter(getApplicationContext(), adaList);
-                        populateMe.setAdapter(adapter);
-                    }
-                }
-            });
+            adapter = new Adapters.FriendAdapter(this,adaList);
+            repopulatePending();
         }
     }
 
@@ -79,7 +65,9 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
                 if(populateMe.getAdapter() == sAdapter){
+                    Log.e("AUD", "Changing adapter to adapter");
                     populateMe.setAdapter(adapter);
+                    repopulatePending();
                 }
                 return true;
             }
@@ -96,6 +84,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
         sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                Log.e("AUD", "Query submitted");
                 runQuery(query);
                 return true;
             }
@@ -106,6 +95,64 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
             }
         });
         return super.onCreateOptionsMenu(menu);
+    }
+
+    private void repopulatePending(){
+        Log.e("AUD", "Repopulating pending");
+        adaList.clear();
+//        adapter.notifyDataSetChanged();
+        new AsyncTask<Void,Void,Boolean>(){
+            private ParseUser tUser = currUser;
+            private List<Friend> pend, reqs;
+
+            @Override
+            public Boolean doInBackground(Void... v){
+                pend = reqs = new ArrayList<>();
+                ParseQuery<ParseObject> q1 = ParseQuery.getQuery("PendingTable");
+                q1.whereEqualTo("from", tUser);
+                ParseQuery<ParseObject> q2 = ParseQuery.getQuery("PendingTable");
+                q2.whereEqualTo("to",tUser);
+                try{
+                    List<ParseObject> q1Res = q1.find();
+                    for(ParseObject po : q1Res){
+                        ParseUser pu = po.getParseUser("to");
+                        Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+                        f.setType("pending");
+                        pend.add(f);
+                    }
+                    List<ParseObject> q2Res = q2.find();
+                    for(ParseObject po : q2Res){
+                        ParseUser pu = po.getParseUser("from");
+                        Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+                        f.setType("requested");
+                        reqs.add(f);
+                    }
+                } catch (Exception ex){
+                    Log.e("AUD",Log.getStackTraceString(ex));
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public void onPostExecute(Boolean res){
+                if(res){
+                    Log.e("AUD", "repopulation okay");
+                    Collections.sort(pend);
+                    Collections.sort(reqs);
+                    Set<Friend> fset = new LinkedHashSet<Friend>();
+                    adaList.addAll(reqs);
+                    adaList.addAll(pend);
+                    fset.addAll(adaList);
+                    adaList.clear();
+                    adaList.addAll(fset);
+                    Log.e("AUD", "adaList size: " + adaList.size());
+                    adapter.notifyDataSetChanged();
+                    populateMe.setAdapter(adapter);
+                }
+            }
+        }.execute();
+        setNonSearchAdapterListViewSetting();
     }
 
     private void runQuery(String q){
@@ -135,6 +182,66 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
         });
     }
 
+    private void setNonSearchAdapterListViewSetting(){
+        populateMe.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final Friend f = adaList.get(position);
+                switch (f.getType()) {
+                    case "pending":
+                        break;
+                    case "requested":
+                        new AsyncTask<Void,Void,Boolean>(){
+                            private ParseUser tUser = currUser;
+
+                            @Override
+                            public Boolean doInBackground(Void... v){
+                                try{
+                                    setYourFriends(f.getParseUser().fetchIfNeeded());
+                                    setTheirFriends(f.getParseUser().fetchIfNeeded());
+                                    cleanUpPending();
+                                } catch (Exception ex){
+                                    Log.e("AUD",Log.getStackTraceString(ex));
+                                    return false;
+                                }
+                                return true;
+                            }
+
+                            @Override
+                            public void onPostExecute(Boolean res){
+                                if(res){
+                                    makeToast("Friend Added!");
+                                }
+                            }
+
+                            private void setYourFriends(ParseUser addMe) throws Exception{
+                                ParseObject obj = tUser.getParseObject("friends");
+                                obj.add("all_friends",addMe);
+                                obj.save();
+                                tUser.save();
+                            }
+
+                            private void setTheirFriends(ParseUser changeMe) throws Exception{
+                                ParseObject pobj = changeMe.getParseObject("friends");
+                                pobj.add("all_friends",tUser);
+                                pobj.save();
+                                changeMe.save();
+                            }
+
+                            private void cleanUpPending() throws Exception {
+                                ParseQuery<ParseObject> ptq = ParseQuery.getQuery("PendingTable");
+                                ptq.whereEqualTo("from",f.getParseUser().fetchIfNeeded())
+                                        .whereEqualTo("to", tUser);
+                                List<ParseObject> finds = ptq.find();
+                                finds.get(0).delete();
+                            }
+                        }.execute();
+                        break;
+                }
+            }
+        });
+    }
+
     private void setSearchAdapterListViewSettings(){
         populateMe.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -155,13 +262,15 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                         pt.put("from", tUser);
                         pt.put("to", reqUser);
                         ParseQuery pq = ParseQuery.getQuery("PendingTable");
-                        pq.whereEqualTo("from",currUser)
-                                .whereEqualTo("to",reqUser);
+                        pq.whereEqualTo("from", currUser)
+                                .whereEqualTo("to", reqUser);
                         try {
-                            if(pq.find().isEmpty())
+                            if (pq.find().isEmpty()) {
                                 pt.save();
-                            else
+                            }
+                            else {
                                 return false;
+                            }
                         } catch (Exception ex) {
                             Log.e("AUD", Log.getStackTraceString(ex));
                             return false;
@@ -194,4 +303,6 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
     private void makeToast(String s){
         Toast.makeText(this,s,Toast.LENGTH_SHORT).show();
     }
+
+
 }
