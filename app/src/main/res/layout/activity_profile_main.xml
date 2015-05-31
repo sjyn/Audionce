@@ -17,6 +17,7 @@
 
     <ListView
         android:layout_width="fill_parent"
+        android:layout_marginTop="12dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/profile_picture_main"
         android:id="@+id/sounds_list_view">

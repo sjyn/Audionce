@@ -30,4 +30,6 @@
     <string name="new_sound_name_hint">title</string>
     <string name="pub">public</string>
     <string name="priv">private</string>
+    <string name="title_activity_view_pending_friends">Pending Requests</string>
+    <string name="pending">Pending</string>
 </resources>

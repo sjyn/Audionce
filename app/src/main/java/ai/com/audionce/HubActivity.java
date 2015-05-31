@@ -68,6 +68,17 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     @Override
+    public void onResume(){
+        super.onResume();
+        if(tMap != null) {
+            tMap.clear();
+            Location mLoc = tMap.getMyLocation();
+            tMap.moveCamera(CameraUpdateFactory.
+                    newLatLng(new LatLng(mLoc.getLatitude(),mLoc.getLongitude())));
+        }
+    }
+
+    @Override
     public void onMapReady(GoogleMap map){
         tMap = map;
         tMap.setMyLocationEnabled(true);

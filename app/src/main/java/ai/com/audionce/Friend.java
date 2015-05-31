@@ -21,6 +21,12 @@ public class Friend implements Comparable<Friend> {
         this.img = img;
     }
 
+    private Friend(String un, Bitmap img, ParseUser usr){
+        username = un;
+        this.img = img;
+        user = usr;
+    }
+
     public void setType(String s){
         type = s;
     }
@@ -60,7 +66,7 @@ public class Friend implements Comparable<Friend> {
 //            BitmapFactory.Options opts = new BitmapFactory.Options();
 //            opts.inSampleSize = Utilities.calculateInSampleSize(opts,75,75);
 //            Bitmap map = BitmapFactory.decodeByteArray(data,0,data.length,opts);
-            return new Friend(un,null);
+            return new Friend(un,null,user);
         } catch (Exception e){
             return null;
         }

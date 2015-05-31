@@ -84,6 +84,7 @@ public class ProfileMain extends AppCompatActivity {
         friends = (TextView)findViewById(R.id.friends_text_main);
         addSound = (TextView)findViewById(R.id.profile_add_text_main);
         noSounds = (TextView)findViewById(R.id.no_sounds_text);
+        noSounds.setVisibility(View.GONE);
         currentUser = ParseUser.getCurrentUser();
         opts = new BitmapFactory.Options();
         opts.inSampleSize = Utilities.calculateInSampleSize
@@ -141,33 +142,48 @@ public class ProfileMain extends AppCompatActivity {
                 createAndDisplayUsernameEditor();
             }
         });
-        final ArrayList<ParseObject> userSounds = (ArrayList<ParseObject>)currentUser.get("sounds");
-        if(userSounds.isEmpty()){
-            noSounds.setVisibility(View.VISIBLE);
-        } else {
-            new AsyncTask<Void,Void,Boolean>(){
-                private ArrayList<ParseObject> cpy = userSounds;
-                private ArrayList<Sound> adapterList = new ArrayList<>();
+        loadSounds();
+    }
 
-                @Override
-                public Boolean doInBackground(Void... voids){
-                    for(ParseObject po : cpy){
-                        adapterList.add(Sound.parseSound(po));
-                    }
-                    return true;
-                }
+    private void loadSounds(){
+        new AsyncTask<Void,Void,Boolean>(){
+            private ParseUser tUser;
+            private List<Sound> fSounds;
 
-                @Override
-                public void onPostExecute(Boolean res){
-                    if(res){
-                        adapter = new Adapters.ProfileSoundsAdapter(getApplicationContext(),adapterList);
-                        sounds.setAdapter(adapter);
-                        adapter.notifyDataSetChanged();
+            @Override
+            public void onPreExecute(){
+                tUser = currentUser;
+                fSounds = new ArrayList<>();
+            }
+
+            @Override
+            public Boolean doInBackground(Void... c){
+                List<ParseObject> uSounds = (List<ParseObject>)tUser.get("sounds");
+                if (uSounds.isEmpty())
+                    return false;
+                for(ParseObject po : uSounds){
+                    try {
+                        fSounds.add(Sound.parseSound(po.fetchIfNeeded()));
+                    } catch (Exception ex){
+                        Log.e("AUD",Log.getStackTraceString(ex));
+                        return false;
                     }
                 }
-            }.execute();
-            noSounds.setVisibility(View.GONE);
-        }
+                return true;
+            }
+
+            @Override
+            public void onPostExecute(Boolean res){
+                if(res){
+                    adapter = new Adapters.ProfileSoundsAdapter(getApplicationContext(),fSounds);
+                    sounds.setAdapter(adapter);
+                    adapter.notifyDataSetChanged();
+                    noSounds.setVisibility(View.GONE);
+                } else {
+                    noSounds.setVisibility(View.VISIBLE);
+                }
+            }
+        }.execute();
     }
 
     @Override
@@ -187,6 +203,7 @@ public class ProfileMain extends AppCompatActivity {
                 }
             }
         });
+        loadSounds();
     }
 
     @Override

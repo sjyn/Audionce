@@ -1,5 +1,6 @@
 package ai.com.audionce;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
@@ -95,7 +96,7 @@ public final class Adapters {
         private MediaPlayer player;
 
         public ProfileSoundsAdapter(Context c, List<Sound> snds){
-            super(c,R.layout.sounds_list_item);
+            super(c,R.layout.sounds_list_item,snds);
             this.sounds = snds;
             isSoundPlaying = false;
             player = new MediaPlayer();
@@ -107,7 +108,7 @@ public final class Adapters {
         }
 
         @Override
-        public View getView(final int pos, View cv, ViewGroup parent){
+        public View getView(int pos, View cv, ViewGroup parent){
             if(cv == null){
                 LayoutInflater inflater = LayoutInflater.from(super.getContext());
                 cv = inflater.inflate(R.layout.sounds_list_item,parent,false);
@@ -116,11 +117,20 @@ public final class Adapters {
                 h.button = (ImageButton)cv.findViewById(R.id.play_sound_button);
                 cv.setTag(h);
             }
+            Log.e("AUD", "Sound getView called");
             Holder holder = (Holder)cv.getTag();
             holder.tv.setText(sounds.get(pos).getTitle());
+            final int tPos = pos;
+            holder.button.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    return false;
+                }
+            });
             holder.button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Log.e("AUD","sound button pressed");
                     if (!isSoundPlaying) {
                         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                         player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -139,7 +149,7 @@ public final class Adapters {
                             }
                         });
                         try {
-                            player.setDataSource(sounds.get(pos).getUrl());
+                            player.setDataSource(sounds.get(tPos).getUrl());
                             player.prepareAsync();
                         } catch (IOException ioe) {
                             Log.e("AUD",Log.getStackTraceString(ioe));

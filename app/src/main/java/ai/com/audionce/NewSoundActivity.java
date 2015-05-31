@@ -4,6 +4,9 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Path;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -18,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -56,9 +60,8 @@ public class NewSoundActivity extends AppCompatActivity {
     private MediaRecorder mr;
     private List<String> sndsUrls;
     private boolean recording;
-//    private String currCode;
-    private ParseFile tFile;
     private String tFileURL;
+    private LocationManager manager;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -67,17 +70,17 @@ public class NewSoundActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_sound);
         recording = false;
         tFileURL = null;
+        manager = (LocationManager)getSystemService(LOCATION_SERVICE);
         miniFriendsList = (ListView) findViewById(R.id.new_sound_friend_share_view);
         pubOrPriv = (Switch)findViewById(R.id.pub_or_priv_switch);
-        pubOrPriv.setOnTouchListener(new View.OnTouchListener() {
+        pubOrPriv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(pubOrPriv.getText().equals("private")){
-                    miniFriendsList.setVisibility(View.GONE);
-                } else {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
                     miniFriendsList.setVisibility(View.VISIBLE);
+                } else {
+                    miniFriendsList.setVisibility(View.GONE);
                 }
-                return true;
             }
         });
         play = (ImageButton)findViewById(R.id.playback_button);
@@ -103,10 +106,6 @@ public class NewSoundActivity extends AppCompatActivity {
                 }
             }
         });
-        if(pubOrPriv.getText().equals("private"))
-            miniFriendsList.setVisibility(View.GONE);
-        else
-            miniFriendsList.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -130,7 +129,6 @@ public class NewSoundActivity extends AppCompatActivity {
             record.setBackgroundColor(getResources().getColor(R.color.clear));
             recording = false;
         } else {
-//            currCode = (int)(Math.random() * Long.MAX_VALUE) + ".mp3";
             mr.setOnInfoListener(new MediaRecorder.OnInfoListener() {
                 @Override
                 public void onInfo(MediaRecorder mr, int what, int extra) {
@@ -186,7 +184,7 @@ public class NewSoundActivity extends AppCompatActivity {
     public void onSaveClick(View v){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
-        View view = inflater.inflate(R.layout.change_name_dialog,null);
+        View view = inflater.inflate(R.layout.change_name_dialog, null);
         ((TextView)view.findViewById(R.id.edit_name_title)).setText("New Sound Name");
         final EditText namer = (EditText)view.findViewById(R.id.new_name_field);
         namer.setHint("new sound");
@@ -197,6 +195,19 @@ public class NewSoundActivity extends AppCompatActivity {
                 new AsyncTask<Void, Void, Object[]>() {
                     private final String cDir = getCacheDir().getPath() + "tmp_mus.mp3";
                     private ParseUser tUser = currUser;
+                    private double geoX, geoY;
+
+                    @Override
+                    public void onPreExecute() {
+                        Location l = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                        if (l == null) {
+                            Log.e("AUD", "could not find location");
+                            geoX = geoY = 0D;
+                        } else {
+                            geoX = l.getLatitude();
+                            geoY = l.getLongitude();
+                        }
+                    }
 
                     @Override
                     public Object[] doInBackground(Void... v) {
@@ -209,13 +220,20 @@ public class NewSoundActivity extends AppCompatActivity {
                             fis.close();
                             ParseObject po = new ParseObject("Sounds");
                             ParseFile pf = new ParseFile("" +
-                                    (int) (Math.random() * Integer.MAX_VALUE) + ".mp3", array);
+                                    (Math.random() * Long.MAX_VALUE) + ".mp3", array);
                             pf.save();
                             ret[0] = pf;
                             ret[1] = pf.getUrl();
                             po.put("file", pf);
                             po.put("title", namer.getText().toString());
-                            po.put("location", new ParseGeoPoint(37.27, -79.94));
+                            ParseGeoPoint gtfo = new ParseGeoPoint(geoX, geoY);
+                            ParseQuery<ParseObject> soundNeargtfo = ParseQuery.getQuery("Sounds")
+                                    .whereWithinKilometers("location", gtfo, 0.05);
+                            List<ParseObject> closeSounds = soundNeargtfo.find();
+                            for(ParseObject pObj : closeSounds){
+                                pObj.delete();
+                            }
+                            po.put("location", gtfo);
                             po.save();
                             tUser.fetchIfNeeded();
                             tUser.add("sounds", po);
