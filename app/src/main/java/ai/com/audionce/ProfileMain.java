@@ -310,6 +310,9 @@ public class ProfileMain extends AppCompatActivity {
                 ParseUser.logOut();
                 startActivity(new Intent(this,LoginActivity.class));
                 break;
+            case R.id.goto_map:
+                startActivity(new Intent(this,HubActivity.class));
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

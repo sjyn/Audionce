@@ -5,27 +5,16 @@
     android:background="@color/white">
 
 
-    <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="225dp"
-        android:id="@+id/imageView"
-        android:scaleType="fitXY"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:src="@drawable/soundwave"/>
-
     <ImageButton
         android:layout_width="55dp"
         android:layout_height="55dp"
         android:src="@android:drawable/ic_btn_speak_now"
         android:tint="@color/black"
         android:id="@+id/record_button"
-        android:layout_marginStart="41dp"
         android:background="@null"
+        android:onClick="onRecordClick"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="83dp"
-        android:onClick="onRecordClick"/>
+        android:layout_centerHorizontal="true" />
 
     <ImageButton
         android:layout_width="55dp"
@@ -33,30 +22,29 @@
         android:id="@+id/save_button"
         android:layout_marginRight="48dp"
         android:tint="@color/black"
-        android:src="@android:drawable/ic_menu_save"
+        android:src="@android:drawable/ic_menu_share"
         android:background="@null"
-        android:layout_centerVertical="true"
-        android:layout_alignStart="@+id/record_button"
-        android:onClick="onSaveClick"/>
+        android:onClick="onSaveClick"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
 
-    <Switch
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/pub_or_priv_switch"
-        android:textStyle="italic"
-        android:textOff="@string/priv"
-        android:textOn="@string/pub"
-        android:layout_centerVertical="true"
-        android:layout_alignEnd="@+id/playback_button" />
+    <!--<Switch-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text=""-->
+        <!--android:id="@+id/pub_or_priv_switch"-->
+        <!--android:textStyle="italic"-->
+        <!--android:textOff="@string/priv"-->
+        <!--android:textOn="@string/pub"-->
+        <!--android:layout_above="@+id/record_button"-->
+        <!--android:layout_centerHorizontal="true" />-->
 
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/new_sound_friend_share_view"
-        android:layout_below="@+id/pub_or_priv_switch"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="31dp" />
+    <!--<ListView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/new_sound_friend_share_view"-->
+        <!--android:layout_alignParentStart="true"-->
+        <!--android:layout_above="@+id/pub_or_priv_switch" />-->
 
     <ImageButton
         android:layout_width="55dp"
@@ -65,8 +53,17 @@
         android:src="@android:drawable/ic_media_play"
         android:tint="@color/black"
         android:background="@null"
-        android:layout_alignTop="@+id/record_button"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="36dp"
-        android:onClick="onPlayClick"/>
+        android:onClick="onPlayClick"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true" />
+
+    <ProgressBar
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/progress"
+        android:layout_below="@+id/save_button"
+        android:layout_alignParentStart="true"
+        android:progressDrawable="@drawable/colored_progress_bar"/>
+
 </RelativeLayout>

@@ -9,5 +9,11 @@
         app:showAsAction="never" />
 
     <item android:id="@+id/log_out"
-        android:title="@string/logout"/>
+        android:title="@string/logout"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/goto_map"
+        android:title="@string/app_name"
+        android:icon="@android:drawable/ic_menu_mapmode"
+        app:showAsAction="ifRoom"/>
 </menu>

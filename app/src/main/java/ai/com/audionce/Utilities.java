@@ -1,11 +1,11 @@
 package ai.com.audionce;
 
 import android.graphics.BitmapFactory;
+import android.util.DisplayMetrics;
 
-/**
- * Created by SJYN on 5/19/15.
- */
 public class Utilities {
+
+    public static final int SOUND_DURATION = 30000;
 
     public static int calculateInSampleSize(BitmapFactory.Options opts, int finW, int finH){
         int inSampleSize = 1;
@@ -18,4 +18,5 @@ public class Utilities {
         }
         return inSampleSize;
     }
+
 }

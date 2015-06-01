@@ -12,19 +12,23 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.CountDownTimer;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,8 +54,11 @@ import java.util.List;
 
 
 public class NewSoundActivity extends AppCompatActivity {
-    private ListView miniFriendsList;
-    private Switch pubOrPriv;
+//    private ListView miniFriendsList;
+//    private Switch pubOrPriv;
+    private CountDownTimer cdt;
+    private int SCREEN_WIDTH;
+    private ProgressBar prog;
     private ImageButton play,save,record;
     private Adapters.FriendAdapter adapter;
     private final ParseUser currUser = ParseUser.getCurrentUser();
@@ -68,50 +75,55 @@ public class NewSoundActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_sound);
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        SCREEN_WIDTH = dm.widthPixels;
         recording = false;
         tFileURL = null;
         manager = (LocationManager)getSystemService(LOCATION_SERVICE);
-        miniFriendsList = (ListView) findViewById(R.id.new_sound_friend_share_view);
-        miniFriendsList.setVisibility(View.GONE);
-        pubOrPriv = (Switch)findViewById(R.id.pub_or_priv_switch);
-        pubOrPriv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    miniFriendsList.setVisibility(View.VISIBLE);
-                } else {
-                    miniFriendsList.setVisibility(View.GONE);
-                }
-            }
-        });
+        prog = (ProgressBar)findViewById(R.id.progress);
+        prog.setMax(SCREEN_WIDTH);
+//        miniFriendsList = (ListView) findViewById(R.id.new_sound_friend_share_view);
+//        miniFriendsList.setVisibility(View.GONE);
+//        pubOrPriv = (Switch)findViewById(R.id.pub_or_priv_switch);
+//        pubOrPriv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if(isChecked){
+//                    miniFriendsList.setVisibility(View.VISIBLE);
+//                } else {
+//                    miniFriendsList.setVisibility(View.GONE);
+//                }
+//            }
+//        });
         play = (ImageButton)findViewById(R.id.playback_button);
         save = (ImageButton)findViewById(R.id.save_button);
         record = (ImageButton)findViewById(R.id.record_button);
         friends = new ArrayList<>();
         sndsUrls = new ArrayList<>();
         mr = new MediaRecorder();
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("FriendTable");
-        query.whereEqualTo("user", currUser);
-        query.findInBackground(new FindCallback<ParseObject>() {
-            @Override
-            public void done(List<ParseObject> list, ParseException e) {
-                if (e == null && !list.isEmpty()) {
-                    ParseObject obj = list.get(0);
-                    List<ParseUser> uf = (List<ParseUser>) obj.get("all_friends");
-                    for (ParseUser pu : uf) {
-                        try {
-                            Friend f = Friend.parseFriend(pu.fetchIfNeeded());
-                            f.setType("friends");
-                            friends.add(f);
-                        } catch(Exception ex){
-                            Log.e("AUD",Log.getStackTraceString(ex));
-                        }
-                    }
-                    adapter = new Adapters.FriendAdapter(getApplicationContext(), friends);
-                    miniFriendsList.setAdapter(adapter);
-                }
-            }
-        });
+//        ParseQuery<ParseObject> query = ParseQuery.getQuery("FriendTable");
+//        query.whereEqualTo("user", currUser);
+//        query.findInBackground(new FindCallback<ParseObject>() {
+//            @Override
+//            public void done(List<ParseObject> list, ParseException e) {
+//                if (e == null && !list.isEmpty()) {
+//                    ParseObject obj = list.get(0);
+//                    List<ParseUser> uf = (List<ParseUser>) obj.get("all_friends");
+//                    for (ParseUser pu : uf) {
+//                        try {
+//                            Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+//                            f.setType("friends");
+//                            friends.add(f);
+//                        } catch(Exception ex){
+//                            Log.e("AUD",Log.getStackTraceString(ex));
+//                        }
+//                    }
+//                    adapter = new Adapters.FriendAdapter(getApplicationContext(), friends);
+//                    miniFriendsList.setAdapter(adapter);
+//                }
+//            }
+//        });
     }
 
     @Override
@@ -133,6 +145,7 @@ public class NewSoundActivity extends AppCompatActivity {
         if(recording){
             mr.stop();
             record.setBackgroundColor(getResources().getColor(R.color.clear));
+            cdt.cancel();
             recording = false;
         } else {
             mr.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -142,6 +155,7 @@ public class NewSoundActivity extends AppCompatActivity {
                         case MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED:
                             mr.stop();
                             record.setBackgroundColor(getResources().getColor(R.color.clear));
+                            cdt.cancel();
                             recording = false;
                             break;
                     }
@@ -151,11 +165,12 @@ public class NewSoundActivity extends AppCompatActivity {
             mr.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
             mr.setOutputFile(getCacheDir().getPath() + "tmp_mus.mp3");
             mr.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-            mr.setMaxDuration(12 * 1000);
+            mr.setMaxDuration(Utilities.SOUND_DURATION);
             try {
                 mr.prepare();
                 record.setBackgroundColor(getResources().getColor(R.color.light_red));
                 mr.start();
+                createAndStartCountdownTimer();
                 recording = true;
             } catch (IOException ioe) {
                 Log.e("AUD", Log.getStackTraceString(ioe));
@@ -171,6 +186,7 @@ public class NewSoundActivity extends AppCompatActivity {
             player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
+
                     mp.start();
                 }
             });
@@ -185,6 +201,25 @@ public class NewSoundActivity extends AppCompatActivity {
         } catch (Exception ex){
             Log.e("AUD",Log.getStackTraceString(ex));
         }
+    }
+
+    private void createAndStartCountdownTimer(){
+        Log.e("AUD","Creating countdown timer");
+        cdt = new CountDownTimer(Utilities.SOUND_DURATION,1000) {
+            @Override
+            public void onTick(long millisLeft) {
+//                prog.setProgress(SCREEN_WIDTH / (int)millisLeft);
+
+                Log.e("AUD", "count down tick registered");
+//                prog.incrementProgressBy(());
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        };
+        cdt.start();
     }
 
     public void onSaveClick(View v){
