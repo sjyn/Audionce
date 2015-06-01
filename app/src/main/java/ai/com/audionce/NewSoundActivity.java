@@ -72,6 +72,7 @@ public class NewSoundActivity extends AppCompatActivity {
         tFileURL = null;
         manager = (LocationManager)getSystemService(LOCATION_SERVICE);
         miniFriendsList = (ListView) findViewById(R.id.new_sound_friend_share_view);
+        miniFriendsList.setVisibility(View.GONE);
         pubOrPriv = (Switch)findViewById(R.id.pub_or_priv_switch);
         pubOrPriv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -98,8 +99,13 @@ public class NewSoundActivity extends AppCompatActivity {
                     ParseObject obj = list.get(0);
                     List<ParseUser> uf = (List<ParseUser>) obj.get("all_friends");
                     for (ParseUser pu : uf) {
-                        Friend f = Friend.parseFriend(pu);
-                        friends.add(f);
+                        try {
+                            Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+                            f.setType("friends");
+                            friends.add(f);
+                        } catch(Exception ex){
+                            Log.e("AUD",Log.getStackTraceString(ex));
+                        }
                     }
                     adapter = new Adapters.FriendAdapter(getApplicationContext(), friends);
                     miniFriendsList.setAdapter(adapter);
@@ -228,7 +234,7 @@ public class NewSoundActivity extends AppCompatActivity {
                             po.put("title", namer.getText().toString());
                             ParseGeoPoint gtfo = new ParseGeoPoint(geoX, geoY);
                             ParseQuery<ParseObject> soundNeargtfo = ParseQuery.getQuery("Sounds")
-                                    .whereWithinKilometers("location", gtfo, 0.05);
+                                    .whereWithinKilometers("location", gtfo, 0.01);
                             List<ParseObject> closeSounds = soundNeargtfo.find();
                             for(ParseObject pObj : closeSounds){
                                 pObj.delete();

@@ -73,8 +73,10 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         if(tMap != null) {
             tMap.clear();
             Location mLoc = tMap.getMyLocation();
-            tMap.moveCamera(CameraUpdateFactory.
-                    newLatLng(new LatLng(mLoc.getLatitude(),mLoc.getLongitude())));
+            if(mLoc != null) {
+                tMap.moveCamera(CameraUpdateFactory.
+                        newLatLng(new LatLng(mLoc.getLatitude(), mLoc.getLongitude())));
+            }
         }
     }
 

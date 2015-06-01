@@ -211,6 +211,8 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                             public void onPostExecute(Boolean res){
                                 if(res){
                                     makeToast("Friend Added!");
+                                    adaList.remove(f);
+                                    adapter.notifyDataSetChanged();
                                 }
                             }
 

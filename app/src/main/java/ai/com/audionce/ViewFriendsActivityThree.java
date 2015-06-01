@@ -37,25 +37,18 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
     private ListView fList;
     private List<Friend> friends;
     private Adapters.FriendAdapter adapter;
-
+    private TextView noFriends;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_friends_activity_three);
-        populateFriends();
-    }
-
-    @Override
-    public void onPause(){
-        super.onPause();
-
-    }
-
-    @SuppressWarnings("unchecked")
-    private void populateFriends(){
-        final ParseUser curr = ParseUser.getCurrentUser();
         fList = (ListView)findViewById(R.id.friends_list);
+        friends = new ArrayList<>();
+        noFriends = (TextView)findViewById(R.id.no_friends_view);
+        noFriends.setVisibility(View.GONE);
+        noFriends.setText("You haven't added any friends yet.\nYou can add" +
+            " friends by searching above.");
         fList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -63,7 +56,28 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
                 return true;
             }
         });
-        friends = new ArrayList<>();
+//        if(savedInstanceState == null) {
+//            Log.e("AUD","populating friends from onCreate");
+//            populateFriends();
+//        }
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        Log.e("AUD", "populating friends from onResume");
+        populateFriends();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void populateFriends(){
+        Log.e("AUD", "populateFriends called");
+        final ParseUser curr = ParseUser.getCurrentUser();
         adapter = new Adapters.FriendAdapter(this,friends);
         fList.setAdapter(adapter);
         new AsyncTask<Void,Void,Boolean>(){
@@ -91,7 +105,14 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
             @Override
             public void onPostExecute(Boolean res){
                 if(res){
+                    friends.clear();
                     friends.addAll(fCpy);
+                    if(friends.isEmpty()){
+                        noFriends.setVisibility(View.VISIBLE);
+                    } else {
+                        noFriends.setVisibility(View.GONE);
+                    }
+                    Log.e("AUD","Friends list size: " + friends.size());
                     adapter.notifyDataSetChanged();
                 }
             }
@@ -175,6 +196,8 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
             if(res) {
                 makeToast("Friend removed");
                 friends.remove(fri);
+                if(friends.isEmpty())
+                    noFriends.setVisibility(View.VISIBLE);
                 adapter.notifyDataSetChanged();
             }
         }
