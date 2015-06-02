@@ -163,7 +163,7 @@ public class NewSoundActivity extends AppCompatActivity {
             });
             mr.setAudioSource(MediaRecorder.AudioSource.MIC);
             mr.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
-            mr.setOutputFile(getCacheDir().getPath() + "tmp_mus.mp3");
+            mr.setOutputFile(getCacheDir().getPath() + "tmp_mus.aac");
             mr.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
             mr.setMaxDuration(Utilities.SOUND_DURATION);
             try {
@@ -234,10 +234,9 @@ public class NewSoundActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 new AsyncTask<Void, Void, Object[]>() {
-                    private final String cDir = getCacheDir().getPath() + "tmp_mus.mp3";
+                    private final String cDir = getCacheDir().getPath() + "tmp_mus.aac";
                     private ParseUser tUser = currUser;
                     private double geoX, geoY;
-
                     @Override
                     public void onPreExecute() {
                         Location l = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -261,7 +260,7 @@ public class NewSoundActivity extends AppCompatActivity {
                             fis.close();
                             ParseObject po = new ParseObject("Sounds");
                             ParseFile pf = new ParseFile("" +
-                                    (Math.random() * Long.MAX_VALUE) + ".mp3", array);
+                                    (long)(Math.random() * Long.MAX_VALUE) + ".aac", array);
                             pf.save();
                             ret[0] = pf;
                             ret[1] = pf.getUrl();

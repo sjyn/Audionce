@@ -81,7 +81,7 @@ public class SignupActivity extends AppCompatActivity {
             Bitmap picture = BitmapFactory.decodeResource(getResources(),R.drawable.def_profile);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             picture.compress(Bitmap.CompressFormat.PNG, 100, baos);
-            final ParseFile file = new ParseFile("file",baos.toByteArray());
+            final ParseFile file = new ParseFile("file.png",baos.toByteArray());
             file.saveInBackground(new SaveCallback() {
                 @Override
                 public void done(ParseException e) {

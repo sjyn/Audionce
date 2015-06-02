@@ -11,7 +11,7 @@ import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 
-public class Sound {
+public class Sound extends Prioritized {
     private LatLng loc;
     private String title;
     private String url;
@@ -47,5 +47,10 @@ public class Sound {
 
     public String getUrl(){
         return url;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        return (o instanceof Sound) && ((Sound)o).getTitle().equals(title);
     }
 }
