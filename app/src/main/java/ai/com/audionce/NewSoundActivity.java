@@ -82,7 +82,7 @@ public class NewSoundActivity extends AppCompatActivity {
         tFileURL = null;
         manager = (LocationManager)getSystemService(LOCATION_SERVICE);
         prog = (ProgressBar)findViewById(R.id.progress);
-        prog.setMax(SCREEN_WIDTH);
+        prog.setMax(SCREEN_WIDTH - 20);
 //        miniFriendsList = (ListView) findViewById(R.id.new_sound_friend_share_view);
 //        miniFriendsList.setVisibility(View.GONE);
 //        pubOrPriv = (Switch)findViewById(R.id.pub_or_priv_switch);
@@ -208,10 +208,8 @@ public class NewSoundActivity extends AppCompatActivity {
         cdt = new CountDownTimer(Utilities.SOUND_DURATION,1000) {
             @Override
             public void onTick(long millisLeft) {
-//                prog.setProgress(SCREEN_WIDTH / (int)millisLeft);
-
+                prog.setProgress(prog.getProgress() + (SCREEN_WIDTH / 30));
                 Log.e("AUD", "count down tick registered");
-//                prog.incrementProgressBy(());
             }
 
             @Override

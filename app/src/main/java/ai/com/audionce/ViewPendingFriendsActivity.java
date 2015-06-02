@@ -191,48 +191,48 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                     case "pending":
                         break;
                     case "requested":
-                        new AsyncTask<Void,Void,Boolean>(){
+                        new AsyncTask<Void, Void, Boolean>() {
                             private ParseUser tUser = currUser;
 
                             @Override
-                            public Boolean doInBackground(Void... v){
-                                try{
+                            public Boolean doInBackground(Void... v) {
+                                try {
                                     setYourFriends(f.getParseUser().fetchIfNeeded());
                                     setTheirFriends(f.getParseUser().fetchIfNeeded());
                                     cleanUpPending();
-                                } catch (Exception ex){
-                                    Log.e("AUD",Log.getStackTraceString(ex));
+                                } catch (Exception ex) {
+                                    Log.e("AUD", Log.getStackTraceString(ex));
                                     return false;
                                 }
                                 return true;
                             }
 
                             @Override
-                            public void onPostExecute(Boolean res){
-                                if(res){
+                            public void onPostExecute(Boolean res) {
+                                if (res) {
                                     makeToast("Friend Added!");
                                     adaList.remove(f);
                                     adapter.notifyDataSetChanged();
                                 }
                             }
 
-                            private void setYourFriends(ParseUser addMe) throws Exception{
+                            private void setYourFriends(ParseUser addMe) throws Exception {
                                 ParseObject obj = tUser.getParseObject("friends");
-                                obj.add("all_friends",addMe);
+                                obj.add("all_friends", addMe);
                                 obj.save();
                                 tUser.save();
                             }
 
-                            private void setTheirFriends(ParseUser changeMe) throws Exception{
+                            private void setTheirFriends(ParseUser changeMe) throws Exception {
                                 ParseObject pobj = changeMe.getParseObject("friends");
-                                pobj.add("all_friends",tUser);
+                                pobj.add("all_friends", tUser);
                                 pobj.save();
                                 changeMe.save();
                             }
 
                             private void cleanUpPending() throws Exception {
                                 ParseQuery<ParseObject> ptq = ParseQuery.getQuery("PendingTable");
-                                ptq.whereEqualTo("from",f.getParseUser().fetchIfNeeded())
+                                ptq.whereEqualTo("from", f.getParseUser().fetchIfNeeded())
                                         .whereEqualTo("to", tUser);
                                 List<ParseObject> finds = ptq.find();
                                 finds.get(0).delete();
@@ -260,24 +260,28 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
 
                     @Override
                     public Boolean doInBackground(Void... params) {
-                        ParseObject pt = new ParseObject("PendingTable");
-                        pt.put("from", tUser);
-                        pt.put("to", reqUser);
-                        ParseQuery pq = ParseQuery.getQuery("PendingTable");
-                        pq.whereEqualTo("from", currUser)
-                                .whereEqualTo("to", reqUser);
-                        try {
-                            if (pq.find().isEmpty()) {
-                                pt.save();
-                            }
-                            else {
+                        ParseObject mFriendTable = tUser.getParseObject("friends");
+                        List<ParseUser> mFriend = (List<ParseUser>)mFriendTable.get("all_friends");
+                        if(!mFriend.contains(reqUser)) {
+                            ParseObject pt = new ParseObject("PendingTable");
+                            pt.put("from", tUser);
+                            pt.put("to", reqUser);
+                            ParseQuery pq = ParseQuery.getQuery("PendingTable");
+                            pq.whereEqualTo("from", currUser)
+                                    .whereEqualTo("to", reqUser);
+                            try {
+                                if (pq.find().isEmpty()) {
+                                    pt.save();
+                                } else {
+                                    return false;
+                                }
+                            } catch (Exception ex) {
+                                Log.e("AUD", Log.getStackTraceString(ex));
                                 return false;
                             }
-                        } catch (Exception ex) {
-                            Log.e("AUD", Log.getStackTraceString(ex));
-                            return false;
+                            return true;
                         }
-                        return true;
+                        return false;
                     }
 
                     @Override
@@ -285,7 +289,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                         if (res) {
                             makeToast("Friend Requested!");
                         } else {
-                            makeToast("Friend Request Failed");
+                            makeToast("You are already friends with this person.");
                         }
                     }
                 }.execute();
