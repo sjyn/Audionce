@@ -180,7 +180,9 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                 break;
             case R.id.log_out:
                 ParseUser.logOut();
-                startActivity(new Intent(this,LoginActivity.class));
+                Intent in = new Intent(this,LoginActivity.class);
+                in.putExtra("should_auto_login_from_intent", "no");
+                startActivity(in);
                 break;
             case R.id.edit_profile:
                 startActivity(new Intent(this,ProfileMain.class));

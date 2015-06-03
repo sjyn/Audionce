@@ -8,6 +8,9 @@
         android:orderInCategory="100"
         app:showAsAction="never" />
 
+    <item android:id="@+id/log_out"
+        android:title="@string/logout"/>
+
     <item android:id="@+id/action_search"
         android:title="@string/search_title"
         android:icon="@android:drawable/ic_menu_search"

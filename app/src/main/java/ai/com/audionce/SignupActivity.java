@@ -1,10 +1,13 @@
 package ai.com.audionce;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +23,7 @@ import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
@@ -57,10 +61,6 @@ public class SignupActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -68,67 +68,74 @@ public class SignupActivity extends AppCompatActivity {
         startActivity(new Intent(this,LoginActivity.class));
     }
 
+    private void saveUsernamePassword(String un, String pw){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putBoolean("should_auto_login", true);
+        editor.putString("saved_username", un);
+        editor.putString("saved_password",pw);
+        editor.apply();
+    }
+
     public void createNewAccount(View v){
         su.setEnabled(false);
-        final String pwa = pw1.getText().toString();
-        final String pwb = pw2.getText().toString();
-        final String username = un.getText().toString();
-        if(pwa.equals(pwb) && !pwa.equals("") && !pwb.equals("") && !username.equals("")) {
-            final ParseUser user = new ParseUser();
-            user.setPassword(pwa);
-            user.setUsername(username);
-            user.put("sounds", new ArrayList<ParseObject>());
-            Bitmap picture = BitmapFactory.decodeResource(getResources(),R.drawable.def_profile);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            picture.compress(Bitmap.CompressFormat.PNG, 100, baos);
-            final ParseFile file = new ParseFile("file.png",baos.toByteArray());
-            file.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(ParseException e) {
-                    if (e == null) {
-                        user.put("profile_picture", file);
-                        //TODO -- FIX THREAD
-                        user.signUpInBackground(new SignUpCallback() {
-                            @Override
-                            public void done(ParseException e) {
-                                if (e == null) {
-                                    ParseObject ft = new ParseObject("FriendTable");
-                                    ParseObject snds = new ParseObject("Sounds");
-                                    ft.put("user",user);
-                                    ft.put("all_friends", new ArrayList<ParseUser>());
-                                    try {
-                                        ft.save();
-                                    } catch (Exception ex){
-                                        Log.e("AUD",Log.getStackTraceString(ex));
-                                    }
-                                    user.put("friends", ft);
-                                    user.saveInBackground(new SaveCallback() {
-                                        @Override
-                                        public void done(ParseException e) {
-                                            if (e == null) {
-                                                Intent in = new Intent(getApplicationContext(), HubActivity.class);
-                                                in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                getApplicationContext().startActivity(in);
-                                            }
-                                            else {
-                                                Log.e("AUD",Log.getStackTraceString(e));
-                                            }
-                                        }
-                                    });
-                                } else {
-                                    showToast(e.getMessage());
-                                    Log.e("AUD",Log.getStackTraceString(e));
-                                }
-                                su.setEnabled(true);
-                            }
-                        });
+        final String pwa = pw1.getText().toString().trim();
+        final String pwb = pw2.getText().toString().trim();
+        final String username = un.getText().toString().trim();
+        if(!pwa.equals(pwb)){
+            makeToast("Passwords do not match.");
+        } else {
+            new AsyncTask<Void,Void,Utilities.SignupState>(){
+                private String cUsername = username;
+                private String cPassword = pwa;
 
+                @Override
+                public Utilities.SignupState doInBackground(Void... v){
+                    try{
+                        ParseQuery<ParseObject> doesUsernameExist = ParseQuery.getQuery("User")
+                                .whereEqualTo("username",cUsername);
+                        if(!doesUsernameExist.find().isEmpty())
+                            return Utilities.SignupState.USERNAME_ALREADY_EXISTS;
+                        final ParseUser user = new ParseUser();
+                        user.setUsername(cUsername);
+                        user.setPassword(cPassword);
+                        user.put("sounds", new ArrayList<ParseObject>());
+                        Bitmap picture = BitmapFactory.decodeResource(getResources(),R.drawable.def_profile);
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        picture.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                        final ParseFile file = new ParseFile("file.png",baos.toByteArray());
+                        file.save();
+                        user.put("profile_picture", file);
+                        user.signUp();
+                        ParseObject ft = new ParseObject("FriendTable");
+                        ft.put("user",user);
+                        ft.put("all_friends", new ArrayList<ParseUser>());
+                        ft.save();
+                        user.put("friends", ft);
+                        user.save();
+                    } catch (Exception ex){
+                        Utilities.makeLogFromThrowable(ex);
+                        return Utilities.SignupState.ERROR_THROWN;
+                    }
+                    return Utilities.SignupState.ALL_OKAY;
+                }
+
+                @Override
+                public void onPostExecute(Utilities.SignupState state){
+                    switch(state){
+                        case USERNAME_ALREADY_EXISTS:
+                            makeToast("Username \"" + username +"\" is already taken.");
+                            break;
+                        case ALL_OKAY:
+                            saveUsernamePassword(username,pwa);
+                            Intent in = new Intent(getApplicationContext(), HubActivity.class);
+                            in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            getApplicationContext().startActivity(in);
+                            makeToast("User signed up!");
+                            break;
                     }
                 }
-            });
-        } else {
-            showToast("Passwords do not match");
-            su.setEnabled(true);
+            }.execute();
         }
     }
 
@@ -138,7 +145,7 @@ public class SignupActivity extends AppCompatActivity {
         finish();
     }
 
-    private void showToast(String message){
+    private void makeToast(String message){
         Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
     }
 }

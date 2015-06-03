@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
@@ -37,6 +38,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
     private List<Friend> adaList, searchedFriends;
     private SearchView sv;
     private MenuItem search;
+    private TextView noResultsFound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +46,8 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_pending_friends);
         populateMe = (ListView)findViewById(R.id.pending_friends_list_view);
         adaList = searchedFriends = new ArrayList<>();
+        noResultsFound = (TextView)findViewById(R.id.no_results_found);
+        noResultsFound.setVisibility(View.GONE);
         Intent didSearch = getIntent();
         if(didSearch == null || !Intent.ACTION_SEARCH.equals(didSearch.getAction())) {
             adapter = new Adapters.FriendAdapter(this,adaList);
@@ -166,9 +170,9 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
             @Override
             public void done(List<ParseUser> list, ParseException e) {
                 if (e == null && !list.isEmpty()) {
+                    noResultsFound.setVisibility(View.GONE);
                     for (ParseUser pu : list) {
                         Friend f = Friend.parseFriend(pu);
-                        f.setParseUser(pu);
                         f.setType("add");
                         searchedFriends.add(f);
                     }
@@ -176,7 +180,10 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                     populateMe.setAdapter(sAdapter);
                     setSearchAdapterListViewSettings();
                 } else {
-                    //TODO -- Set a textview to say no results found
+                    if(e != null){
+                        Utilities.makeLogFromThrowable(e);
+                    }
+                    noResultsFound.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -301,6 +308,12 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case R.id.action_settings:
+                break;
+            case R.id.log_out:
+                ParseUser.logOut();
+                Intent in = new Intent(this,LoginActivity.class);
+                in.putExtra("should_auto_login_from_intent","no");
+                startActivity(in);
                 break;
         }
         return super.onOptionsItemSelected(item);

@@ -137,6 +137,12 @@ public class NewSoundActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_settings:
                 break;
+            case R.id.log_out:
+                ParseUser.logOut();
+                Intent in = new Intent(this,LoginActivity.class);
+                in.putExtra("should_auto_login_from_intent","no");
+                startActivity(in);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

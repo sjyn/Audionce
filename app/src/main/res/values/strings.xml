@@ -32,4 +32,5 @@
     <string name="priv">private</string>
     <string name="title_activity_view_pending_friends">Pending Requests</string>
     <string name="pending">Pending</string>
+    <string name="no_results">No results found.</string>
 </resources>
