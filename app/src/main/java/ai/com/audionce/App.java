@@ -4,9 +4,6 @@ import android.app.Application;
 
 import com.parse.Parse;
 
-/**
- * Created by SJYN on 5/19/15.
- */
 public class App extends Application {
 
     @Override

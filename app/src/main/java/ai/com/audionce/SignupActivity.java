@@ -4,14 +4,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,23 +15,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.parse.Parse;
-import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
-import com.parse.SaveCallback;
-import com.parse.SignUpCallback;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 
 
 public class SignupActivity extends AppCompatActivity {
@@ -78,64 +64,68 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     public void createNewAccount(View v){
-        su.setEnabled(false);
-        final String pwa = pw1.getText().toString().trim();
-        final String pwb = pw2.getText().toString().trim();
-        final String username = un.getText().toString().trim();
-        if(!pwa.equals(pwb)){
-            makeToast("Passwords do not match.");
+        if (Utilities.doesHaveNetworkConnection(this)) {
+            su.setEnabled(false);
+            final String pwa = pw1.getText().toString().trim();
+            final String pwb = pw2.getText().toString().trim();
+            final String username = un.getText().toString().trim();
+            if (!pwa.equals(pwb)) {
+                makeToast("Passwords do not match.");
+            } else {
+                new AsyncTask<Void, Void, Utilities.SignupState>() {
+                    private String cUsername = username;
+                    private String cPassword = pwa;
+
+                    @Override
+                    public Utilities.SignupState doInBackground(Void... v) {
+                        try {
+                            ParseQuery<ParseObject> doesUsernameExist = ParseQuery.getQuery("User")
+                                    .whereEqualTo("username", cUsername);
+                            if (!doesUsernameExist.find().isEmpty())
+                                return Utilities.SignupState.USERNAME_ALREADY_EXISTS;
+                            final ParseUser user = new ParseUser();
+                            user.setUsername(cUsername);
+                            user.setPassword(cPassword);
+                            user.put("sounds", new ArrayList<ParseObject>());
+                            Bitmap picture = BitmapFactory.decodeResource(getResources(), R.drawable.def_profile);
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            picture.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                            final ParseFile file = new ParseFile("file.png", baos.toByteArray());
+                            file.save();
+                            user.put("profile_picture", file);
+                            user.signUp();
+                            ParseObject ft = new ParseObject("FriendTable");
+                            ft.put("user", user);
+                            ft.put("all_friends", new ArrayList<ParseUser>());
+                            ft.save();
+                            user.put("friends", ft);
+                            user.save();
+                        } catch (Exception ex) {
+                            Utilities.makeLogFromThrowable(ex);
+                            return Utilities.SignupState.ERROR_THROWN;
+                        }
+                        return Utilities.SignupState.ALL_OKAY;
+                    }
+
+                    @Override
+                    public void onPostExecute(Utilities.SignupState state) {
+                        switch (state) {
+                            case USERNAME_ALREADY_EXISTS:
+                                makeToast("Username \"" + username + "\" is already taken.");
+                                break;
+                            case ALL_OKAY:
+                                saveUsernamePassword(username, pwa);
+                                Intent in = new Intent(getApplicationContext(), HubActivity.class);
+                                in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                getApplicationContext().startActivity(in);
+                                makeToast("User signed up!");
+                                break;
+                        }
+                    }
+                }.execute();
+            }
         } else {
-            new AsyncTask<Void,Void,Utilities.SignupState>(){
-                private String cUsername = username;
-                private String cPassword = pwa;
-
-                @Override
-                public Utilities.SignupState doInBackground(Void... v){
-                    try{
-                        ParseQuery<ParseObject> doesUsernameExist = ParseQuery.getQuery("User")
-                                .whereEqualTo("username",cUsername);
-                        if(!doesUsernameExist.find().isEmpty())
-                            return Utilities.SignupState.USERNAME_ALREADY_EXISTS;
-                        final ParseUser user = new ParseUser();
-                        user.setUsername(cUsername);
-                        user.setPassword(cPassword);
-                        user.put("sounds", new ArrayList<ParseObject>());
-                        Bitmap picture = BitmapFactory.decodeResource(getResources(),R.drawable.def_profile);
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        picture.compress(Bitmap.CompressFormat.PNG, 100, baos);
-                        final ParseFile file = new ParseFile("file.png",baos.toByteArray());
-                        file.save();
-                        user.put("profile_picture", file);
-                        user.signUp();
-                        ParseObject ft = new ParseObject("FriendTable");
-                        ft.put("user",user);
-                        ft.put("all_friends", new ArrayList<ParseUser>());
-                        ft.save();
-                        user.put("friends", ft);
-                        user.save();
-                    } catch (Exception ex){
-                        Utilities.makeLogFromThrowable(ex);
-                        return Utilities.SignupState.ERROR_THROWN;
-                    }
-                    return Utilities.SignupState.ALL_OKAY;
-                }
-
-                @Override
-                public void onPostExecute(Utilities.SignupState state){
-                    switch(state){
-                        case USERNAME_ALREADY_EXISTS:
-                            makeToast("Username \"" + username +"\" is already taken.");
-                            break;
-                        case ALL_OKAY:
-                            saveUsernamePassword(username,pwa);
-                            Intent in = new Intent(getApplicationContext(), HubActivity.class);
-                            in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            getApplicationContext().startActivity(in);
-                            makeToast("User signed up!");
-                            break;
-                    }
-                }
-            }.execute();
+            Utilities.makeToast(this, "No Network Connection.");
         }
     }
 

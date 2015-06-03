@@ -2,29 +2,25 @@ package ai.com.audionce;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
-import android.app.ListFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -33,7 +29,6 @@ import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.GetDataCallback;
-import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
@@ -46,8 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 
@@ -66,7 +59,7 @@ public class ProfileMain extends AppCompatActivity {
 
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"ignored", "unchecked"})
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_main);
@@ -104,20 +97,22 @@ public class ProfileMain extends AppCompatActivity {
                 }
             }
         });
-        ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
-        fQue.whereEqualTo("user", currentUser);
-        fQue.findInBackground(new FindCallback<ParseObject>() {
-            @Override
-            public void done(List<ParseObject> list, ParseException e) {
-                if (e == null) {
-                    ParseObject lst = list.get(0);
-                    List<ParseUser> fnds = (List<ParseUser>) lst.get("all_friends");
-                    friends.setText("Friends (" + fnds.size() + ")");
-                } else {
-                    Log.e("AUD", Log.getStackTraceString(e));
-                }
-            }
-        });
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        friends.setText("Friends (" + sp.getInt("num_friends", 0));
+//        ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
+//        fQue.whereEqualTo("user", currentUser);
+//        fQue.findInBackground(new FindCallback<ParseObject>() {
+//            @Override
+//            public void done(List<ParseObject> list, ParseException e) {
+//                if (e == null) {
+//                    ParseObject lst = list.get(0);
+//                    List<ParseUser> fnds = (List<ParseUser>) lst.get("all_friends");
+//                    friends.setText("Friends (" + fnds.size() + ")");
+//                } else {
+//                    Log.e("AUD", Log.getStackTraceString(e));
+//                }
+//            }
+//        });
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -157,6 +152,7 @@ public class ProfileMain extends AppCompatActivity {
             }
 
             @Override
+            @SuppressWarnings("unchecked")
             public Boolean doInBackground(Void... c){
                 List<ParseObject> uSounds = (List<ParseObject>)tUser.get("sounds");
                 if (uSounds.isEmpty())
@@ -187,6 +183,7 @@ public class ProfileMain extends AppCompatActivity {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onResume(){
         super.onResume();
         ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
@@ -231,7 +228,7 @@ public class ProfileMain extends AppCompatActivity {
                             makeToast("NULL");
                             return;
                         }
-                        String newName = et.getText().toString();
+                        final String newName = et.getText().toString();
                         if(!newName.equals("")){
                             currentUser.setUsername(newName);
                             currentUser.saveInBackground(new SaveCallback() {
@@ -239,7 +236,9 @@ public class ProfileMain extends AppCompatActivity {
                                 public void done(ParseException e) {
                                     if(e == null){
                                         username.setText(currentUser.getUsername());
-                                        makeToast("Username updated");
+                                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                                                .edit().putString("saved_username", newName).apply();
+                                        makeToast("Username Updated.");
                                     }
                                 }
                             });
@@ -268,7 +267,7 @@ public class ProfileMain extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                //TODO create new camera activity
+                                //TODO -- create new camera activity
 //                                Intent in = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 //                                in.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(SAVE_PATH)));
 //                                startActivityForResult(in, CAMERA_CODE);

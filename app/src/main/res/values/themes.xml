@@ -9,6 +9,9 @@
     <style name="AB01"
         parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
         <item name="android:background">@color/ab_pink</item>
+        <!--<item name="android:actionModeSplitBackground">@drawable/aud_title_bar_01</item>-->
+
         <item name="background">@color/ab_pink</item>
+        <!--<item name="actionModeSplitBackground">@drawable/aud_title_bar_01</item>-->
     </style>
 </resources>

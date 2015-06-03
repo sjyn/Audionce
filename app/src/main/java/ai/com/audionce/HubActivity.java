@@ -1,18 +1,9 @@
 package ai.com.audionce;
 
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -20,10 +11,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -31,12 +18,9 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.FindCallback;
-import com.parse.Parse;
 import com.parse.ParseException;
-import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -60,6 +44,11 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
         isSoundPlaying = false;
+        startService(new Intent(this, SoundsPickupService.class));
+//        Intent in = getIntent();
+//        if(in.getFlags() == Utilities.FLAG_FROM_SERVICE_TO_HUB){
+//
+//        }
         if(savedInstanceState == null)
             i = 0;
         else
@@ -84,44 +73,44 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap map){
         tMap = map;
         tMap.setMyLocationEnabled(true);
-        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                LatLng markerLoc = marker.getPosition();
-                Location mark = new Location("");
-                mark.setLongitude(markerLoc.longitude);
-                mark.setLatitude(markerLoc.latitude);
-                Location myLoc = new Location("");
-                myLoc.setLatitude(mLoc.latitude);
-                myLoc.setLongitude(mLoc.longitude);
-                Log.e("AUD", "Marker tapped; you are " + mark.distanceTo(myLoc) + "m away");
-                if (mark.distanceTo(myLoc) <= 40) {
-                    ParseQuery<ParseObject> gSound = ParseQuery.getQuery("Sounds");
-                    gSound.whereEqualTo("location",
-                            new ParseGeoPoint(mark.getLatitude(), mark.getLongitude()));
-                    gSound.findInBackground(new FindCallback<ParseObject>() {
-                        @Override
-                        public void done(List<ParseObject> list, ParseException e) {
-                            if(e == null){
-                                Sound s = Sound.parseSound(list.get(0));
-                                if(!isSoundPlaying) {
-                                    try {
-                                        playSound(s);
-                                        Log.e("AUD","Playing Sound");
-                                    } catch (IOException ioe){
-                                        showToast("Error Playing Media");
-                                        Log.e("AUD", Log.getStackTraceString(ioe));
-                                    }
-                                }
-                            } else {
-                                Log.e("AUD",Log.getStackTraceString(e));
-                            }
-                        }
-                    });
-                }
-                return false;
-            }
-        });
+//        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+//            @Override
+//            public boolean onMarkerClick(Marker marker) {
+//                LatLng markerLoc = marker.getPosition();
+//                Location mark = new Location("");
+//                mark.setLongitude(markerLoc.longitude);
+//                mark.setLatitude(markerLoc.latitude);
+//                Location myLoc = new Location("");
+//                myLoc.setLatitude(mLoc.latitude);
+//                myLoc.setLongitude(mLoc.longitude);
+//                Log.e("AUD", "Marker tapped; you are " + mark.distanceTo(myLoc) + "m away");
+//                if (mark.distanceTo(myLoc) <= 40) {
+//                    ParseQuery<ParseObject> gSound = ParseQuery.getQuery("Sounds");
+//                    gSound.whereEqualTo("location",
+//                            new ParseGeoPoint(mark.getLatitude(), mark.getLongitude()));
+//                    gSound.findInBackground(new FindCallback<ParseObject>() {
+//                        @Override
+//                        public void done(List<ParseObject> list, ParseException e) {
+//                            if(e == null){
+//                                Sound s = Sound.parseSound(list.get(0));
+//                                if(!isSoundPlaying) {
+//                                    try {
+//                                        playSound(s);
+//                                        Log.e("AUD","Playing Sound");
+//                                    } catch (IOException ioe){
+//                                        showToast("Error Playing Media");
+//                                        Log.e("AUD", Log.getStackTraceString(ioe));
+//                                    }
+//                                }
+//                            } else {
+//                                Log.e("AUD",Log.getStackTraceString(e));
+//                            }
+//                        }
+//                    });
+//                }
+//                return false;
+//            }
+//        });
         tMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
@@ -157,7 +146,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
             @Override
             public void onMyLocationChange(Location location) {
                 mLoc = new LatLng(location.getLatitude(), location.getLongitude());
-                Log.e("AUD","lat: " + mLoc.latitude + " long: " + mLoc.longitude);
+//                Log.e("AUD","lat: " + mLoc.latitude + " long: " + mLoc.longitude);
                 if (i == 0) {
                     tMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLoc, 17), 4000, null);
                     i++;
@@ -181,7 +170,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
             case R.id.log_out:
                 ParseUser.logOut();
                 Intent in = new Intent(this,LoginActivity.class);
-                in.putExtra("should_auto_login_from_intent", "no");
+//                in.putExtra("should_auto_login_from_intent", "no");
                 startActivity(in);
                 break;
             case R.id.edit_profile:

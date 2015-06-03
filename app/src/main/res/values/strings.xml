@@ -31,4 +31,6 @@
     <string name="title_activity_view_pending_friends">Pending Requests</string>
     <string name="pending">Pending</string>
     <string name="no_results">No results found.</string>
+    <string name="title_activity_audionce_splash">AudionceSplash</string>
+    <string name="general_prefs">General</string>
 </resources>

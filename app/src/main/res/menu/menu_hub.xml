@@ -21,4 +21,11 @@
         android:title=""
         android:icon="@android:drawable/ic_menu_add"
         app:showAsAction="ifRoom"/>
+
+    <!--<item-->
+    <!--android:id="@+id/action_bar_picture"-->
+    <!--android:title=""-->
+    <!--android:icon="@drawable/aud_title_bar_01"-->
+    <!--app:showAsAction="always"-->
+    <!--android:enabled="false"/>-->
 </menu>

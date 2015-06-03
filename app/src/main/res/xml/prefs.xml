@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/general_prefs">
+
+        <CheckBoxPreference
+            android:title="Stay Logged In"
+            android:key="should_auto_login"
+            android:summary="If checked, Audionce will automatically log you in when you open the app."
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:title="Enable Auto Play"
+            android:key="should_run_autoplay_service"
+            android:summary="If checked, sounds will autoplay when you are within 15m of that sound"
+            android:defaultValue="true" />
+
+    </PreferenceCategory>
+</PreferenceScreen>
