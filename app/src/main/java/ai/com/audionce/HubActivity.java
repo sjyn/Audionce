@@ -1,15 +1,14 @@
 package ai.com.audionce;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -26,7 +25,6 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.io.IOException;
 import java.util.List;
 
 
@@ -35,7 +33,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap tMap;
     private int i;
     private LatLng mLoc;
-    private boolean isSoundPlaying;
+//    private boolean isSoundPlaying;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,18 +41,14 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_hub);
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
-        isSoundPlaying = false;
-        Utilities.startSoundPickupService(this);
-//        startService(new Intent(this, SoundsPickupService.class));
-//        Intent in = getIntent();
-//        if(in.getFlags() == Utilities.FLAG_FROM_SERVICE_TO_HUB){
-//
-//        }
+//        isSoundPlaying = false;
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        if (sp.getBoolean("should_start_service_from_hub", true))
+            Utilities.startSoundPickupService(this);
         if(savedInstanceState == null)
             i = 0;
         else
             i = 1;
-
     }
 
     @Override
@@ -167,11 +161,12 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case R.id.action_settings:
+                startActivity(new Intent(this, Settings.class));
                 break;
             case R.id.log_out:
                 ParseUser.logOut();
+                Utilities.stopSoundPickupService(this);
                 Intent in = new Intent(this,LoginActivity.class);
-//                in.putExtra("should_auto_login_from_intent", "no");
                 startActivity(in);
                 break;
             case R.id.edit_profile:
@@ -184,29 +179,29 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         return super.onOptionsItemSelected(item);
     }
 
-    private void playSound(Sound s) throws IOException {
-        MediaPlayer mp = new MediaPlayer();
-        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mp.setDataSource(s.getUrl());
-        mp.prepareAsync();
-        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mp.start();
-                isSoundPlaying = true;
-            }
-        });
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                mp.release();
-                mp = null;
-                isSoundPlaying = false;
-            }
-        });
-    }
-
-    private void showToast(String s){
-        Toast.makeText(this,s,Toast.LENGTH_SHORT).show();
-    }
+//    private void playSound(Sound s) throws IOException {
+//        MediaPlayer mp = new MediaPlayer();
+//        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//        mp.setDataSource(s.getUrl());
+//        mp.prepareAsync();
+//        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+//            @Override
+//            public void onPrepared(MediaPlayer mp) {
+//                mp.start();
+//                isSoundPlaying = true;
+//            }
+//        });
+//        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//            @Override
+//            public void onCompletion(MediaPlayer mp) {
+//                mp.release();
+//                mp = null;
+//                isSoundPlaying = false;
+//            }
+//        });
+//    }
+//
+//    private void showToast(String s){
+//        Toast.makeText(this,s,Toast.LENGTH_SHORT).show();
+//    }
 }

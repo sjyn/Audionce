@@ -124,6 +124,7 @@ public class NewSoundActivity extends AppCompatActivity {
                 break;
             case R.id.log_out:
                 ParseUser.logOut();
+                Utilities.stopSoundPickupService(this);
                 Intent in = new Intent(this,LoginActivity.class);
                 in.putExtra("should_auto_login_from_intent","no");
                 startActivity(in);

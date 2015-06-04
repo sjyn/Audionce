@@ -1,7 +1,9 @@
 package ai.com.audionce;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -29,21 +31,17 @@ public class LoginActivity extends AppCompatActivity {
         li = (Button)findViewById(R.id.button);
     }
 
-//    private void readLoginState() {
-//        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-//        if(sp.getBoolean("should_auto_login",false)){
-//            String username = sp.getString("saved_username","");
-//            String password = sp.getString("saved_password","");
-//            loginUser(username,password);
-//        }
-//    }
-
-    private void loginUser(String un, String pw){
+    private void loginUser(final String un, final String pw) {
+        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         ParseUser.logInInBackground(un, pw, new LogInCallback() {
             @Override
             public void done(ParseUser parseUser, ParseException e) {
-                if (parseUser != null) {
+                if (e == null) {
                     Toast.makeText(getApplicationContext(), "Logged in!", Toast.LENGTH_SHORT).show();
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putString("saved_username", un);
+                    editor.putString("saved_password", pw);
+                    editor.apply();
                     Intent in = new Intent(getApplicationContext(), HubActivity.class);
                     in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     getApplicationContext().startActivity(in);

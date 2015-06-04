@@ -123,6 +123,7 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
             case R.id.log_out:
                 ParseUser.logOut();
                 Intent in = new Intent(this,LoginActivity.class);
+                Utilities.stopSoundPickupService(this);
                 in.putExtra("should_auto_login_from_intent","no");
                 startActivity(in);
                 break;

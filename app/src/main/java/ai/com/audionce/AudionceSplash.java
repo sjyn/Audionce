@@ -48,7 +48,8 @@ public class AudionceSplash extends AppCompatActivity {
             attemptToAutoLoginUser();
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                    .setMessage("Location Services Are Not Enabled")
+                    .setTitle("Location Services Are Not Enabled")
+                    .setMessage(getResources().getString(R.string.enable_location_text))
                     .setPositiveButton("Enable Location", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

@@ -3,6 +3,7 @@ package ai.com.audionce;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
@@ -25,24 +26,72 @@ import com.parse.ParseQuery;
 import java.io.IOException;
 import java.util.List;
 
-public class SoundsPickupService extends Service {
+public class SoundsPickupService extends Service implements AudioManager.OnAudioFocusChangeListener {
     private LocationManager manager;
     private PrioritizedQueue<Sound> playQueue;
     private Sound playingSound;
     private MediaPlayer tPlayer;
+    private AudioManager audioManager;
 
     public SoundsPickupService() {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.e("AUD", "Service stopping");
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
+        Log.e("AUD", "Service starting");
         playQueue = new PrioritizedQueue<>();
         playingSound = null;
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (manager == null)
-            Log.e("AUD", "manager null");
         manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 30, new SoundLocationListener());
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int res = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (res != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            Log.e("AUD", "Could not get audio focus");
+        }
+    }
+
+    @Override
+    public void onAudioFocusChange(int status) {
+        switch (status) {
+            case AudioManager.AUDIOFOCUS_GAIN:
+                if (tPlayer == null) {
+                    try {
+                        playMedia();
+                    } catch (Exception ex) {
+                        Utilities.makeLogFromThrowable(ex);
+                    }
+                } else {
+                    tPlayer.start();
+                }
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS:
+                if (tPlayer != null) {
+                    if (tPlayer.isPlaying())
+                        tPlayer.stop();
+                    tPlayer.release();
+                    tPlayer = null;
+                }
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                if (tPlayer != null) {
+                    if (tPlayer.isPlaying())
+                        tPlayer.pause();
+                }
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                if (tPlayer != null) {
+                    if (tPlayer.isPlaying())
+                        tPlayer.setVolume(0.1f, 0.1f);
+                }
+                break;
+        }
     }
 
     @Override

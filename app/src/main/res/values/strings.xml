@@ -34,4 +34,9 @@
     <string name="title_activity_audionce_splash">AudionceSplash</string>
     <string name="general_prefs">General</string>
     <string name="copyright">Copyright &#169; 2015 Alicia Iott. All rights reserved.</string>
+    <string name="enable_location_text">
+        Audionce needs to access you location in order to work properly. If you choose to enable
+        your location, you will be taken to your default location settings, where you can choose
+        to enable your location.
+    </string>
 </resources>
