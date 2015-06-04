@@ -44,7 +44,8 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
         isSoundPlaying = false;
-        startService(new Intent(this, SoundsPickupService.class));
+        Utilities.startSoundPickupService(this);
+//        startService(new Intent(this, SoundsPickupService.class));
 //        Intent in = getIntent();
 //        if(in.getFlags() == Utilities.FLAG_FROM_SERVICE_TO_HUB){
 //

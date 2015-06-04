@@ -98,7 +98,7 @@ public class ProfileMain extends AppCompatActivity {
             }
         });
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        friends.setText("Friends (" + sp.getInt("num_friends", 0));
+        friends.setText("Friends (" + sp.getInt("num_friends", 0) + ")");
 //        ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
 //        fQue.whereEqualTo("user", currentUser);
 //        fQue.findInBackground(new FindCallback<ParseObject>() {
@@ -304,6 +304,7 @@ public class ProfileMain extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
             case R.id.action_settings:
+                startActivity(new Intent(this, Settings.class));
                 break;
             case R.id.log_out:
                 ParseUser.logOut();
