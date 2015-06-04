@@ -1,12 +1,8 @@
-package ai.com.audionce;
+package com.newline.sjyn.audionce;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.support.v7.app.AppCompatActivity;
 
-import com.parse.ParseFile;
 import com.parse.ParseUser;
 
 public class Friend implements Comparable<Friend> {
@@ -53,7 +49,7 @@ public class Friend implements Comparable<Friend> {
 
     public Bitmap getScaledBitmap(int w, int h){
         BitmapFactory.Options opts = new BitmapFactory.Options();
-        opts.inSampleSize = Utilities.calculateInSampleSize(opts,w,h);
+        opts.inSampleSize = Utilities.calculateInSampleSize(opts, w, h);
         opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
         return Bitmap.createBitmap(img,0,0,w,h);
     }

@@ -1,12 +1,7 @@
-package ai.com.audionce;
+package com.newline.sjyn.audionce;
 
-
-import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.parse.GetCallback;
-import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;

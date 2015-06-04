@@ -24,6 +24,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.newline.sjyn.audionce.Adapters;
+import com.newline.sjyn.audionce.Friend;
+import com.newline.sjyn.audionce.Utilities;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;

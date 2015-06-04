@@ -1,16 +1,12 @@
-package ai.com.audionce;
+package com.newline.sjyn.audionce;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -18,6 +14,8 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.List;
+
+import ai.com.audionce.R;
 
 public final class Adapters {
 
@@ -31,7 +29,7 @@ public final class Adapters {
         }
 
         public FriendAdapter(Context c, List<Friend> list){
-            super(c,R.layout.friend_list_item,list);
+            super(c, R.layout.friend_list_item, list);
             this.list = list;
         }
 

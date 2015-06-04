@@ -10,6 +10,8 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 
+import com.newline.sjyn.audionce.Utilities;
+
 public class Settings extends Activity {
 
     @Override

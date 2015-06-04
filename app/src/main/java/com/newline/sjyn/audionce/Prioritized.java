@@ -1,4 +1,4 @@
-package ai.com.audionce;
+package com.newline.sjyn.audionce;
 
 public abstract class Prioritized {
     private float priority;

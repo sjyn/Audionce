@@ -1,4 +1,4 @@
-package ai.com.audionce;
+package com.newline.sjyn.audionce;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +8,8 @@ import android.net.NetworkInfo;
 import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
+
+import ai.com.audionce.SoundsPickupService;
 
 public class Utilities {
 

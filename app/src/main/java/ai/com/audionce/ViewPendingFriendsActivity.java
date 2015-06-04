@@ -17,6 +17,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.newline.sjyn.audionce.Adapters;
+import com.newline.sjyn.audionce.Friend;
+import com.newline.sjyn.audionce.Utilities;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;

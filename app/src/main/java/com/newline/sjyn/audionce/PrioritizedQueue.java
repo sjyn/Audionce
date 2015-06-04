@@ -1,4 +1,4 @@
-package ai.com.audionce;
+package com.newline.sjyn.audionce;
 
 import java.util.ArrayList;
 import java.util.Arrays;

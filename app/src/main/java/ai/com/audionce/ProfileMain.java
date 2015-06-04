@@ -27,6 +27,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.newline.sjyn.audionce.Adapters;
+import com.newline.sjyn.audionce.Sound;
+import com.newline.sjyn.audionce.Utilities;
 import com.parse.FindCallback;
 import com.parse.GetDataCallback;
 import com.parse.ParseException;
@@ -81,7 +84,7 @@ public class ProfileMain extends AppCompatActivity {
         currentUser = ParseUser.getCurrentUser();
         opts = new BitmapFactory.Options();
         opts.inSampleSize = Utilities.calculateInSampleSize
-                (opts,profilePic.getMaxWidth(),profilePic.getMaxHeight());
+                (opts, profilePic.getMaxWidth(), profilePic.getMaxHeight());
         opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
         if(currentUser == null){
             Log.e("PROFILE","User null");
