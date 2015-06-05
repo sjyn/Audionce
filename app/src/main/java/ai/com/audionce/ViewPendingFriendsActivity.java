@@ -3,6 +3,7 @@ package ai.com.audionce;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
@@ -49,6 +50,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_pending_friends);
         populateMe = (ListView)findViewById(R.id.pending_friends_list_view);
         adaList = searchedFriends = new ArrayList<>();
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         noResultsFound = (TextView)findViewById(R.id.no_results_found);
         noResultsFound.setVisibility(View.GONE);
         Intent didSearch = getIntent();

@@ -3,6 +3,7 @@ package ai.com.audionce;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -39,6 +40,7 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
         friends = new ArrayList<>();
         noFriends = (TextView)findViewById(R.id.no_friends_view);
         noFriends.setVisibility(View.GONE);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         noFriends.setText("You haven't added any friends yet.\nYou can add" +
             " friends by searching above.");
         fList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {

@@ -14,12 +14,14 @@ import ai.com.audionce.SoundsPickupService;
 public class Utilities {
 
     public static final int SOUND_DURATION = 30000;
-    public static final int SOUNDS_DISTANCE_AWAY_M = 15;
+    public static final int SOUNDS_DISTANCE_AWAY_M = 50;
     public static final double SOUNDS_DISTANCE_AWAY_KM = SOUNDS_DISTANCE_AWAY_M / 1000.0;
     public static final String LOGIN_ALWAYS_ENABLED_PATH =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) +
                     "/audionce_prefs_do_not_delete.txt";
     public static final int FLAG_FROM_SERVICE_TO_HUB = 76654;
+    public static final int SOUNDS_DISTANCE_APART_METERS = 20;
+    public static final double SOUNDS_DISTANCE_APART_KM = SOUNDS_DISTANCE_APART_METERS / 1000.0;
     public static final int NOTIFICATION_ID = 9;
     public static Intent sps;
 

@@ -3,6 +3,8 @@ package ai.com.audionce;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -17,7 +19,9 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -26,6 +30,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -42,6 +47,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_hub);
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
 //        isSoundPlaying = false;
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         if (sp.getBoolean("should_start_service_from_hub", true))
@@ -69,6 +75,30 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap map){
         tMap = map;
         tMap.setMyLocationEnabled(true);
+        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                LatLng markerLoc = marker.getPosition();
+                Location mark = new Location("");
+                mark.setLongitude(markerLoc.longitude);
+                mark.setLatitude(markerLoc.latitude);
+                ParseQuery<ParseObject> gSound = ParseQuery.getQuery("Sounds");
+                gSound.whereEqualTo("location",
+                        new ParseGeoPoint(mark.getLatitude(), mark.getLongitude()));
+                gSound.findInBackground(new FindCallback<ParseObject>() {
+                    @Override
+                    public void done(List<ParseObject> list, ParseException e) {
+                        Sound s = Sound.parseSound(list.get(0));
+                        try {
+                            playSound(s);
+                        } catch (Exception ex) {
+                            Utilities.makeLogFromThrowable(ex);
+                        }
+                    }
+                });
+                return false;
+            }
+        });
 //        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 //            @Override
 //            public boolean onMarkerClick(Marker marker) {
@@ -180,27 +210,27 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         return super.onOptionsItemSelected(item);
     }
 
-//    private void playSound(Sound s) throws IOException {
-//        MediaPlayer mp = new MediaPlayer();
-//        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//        mp.setDataSource(s.getUrl());
-//        mp.prepareAsync();
-//        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//            @Override
-//            public void onPrepared(MediaPlayer mp) {
-//                mp.start();
+    private void playSound(Sound s) throws IOException {
+        MediaPlayer mp = new MediaPlayer();
+        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mp.setDataSource(s.getUrl());
+        mp.prepareAsync();
+        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
 //                isSoundPlaying = true;
-//            }
-//        });
-//        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-//            @Override
-//            public void onCompletion(MediaPlayer mp) {
-//                mp.release();
-//                mp = null;
+            }
+        });
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mp.release();
+                mp = null;
 //                isSoundPlaying = false;
-//            }
-//        });
-//    }
+            }
+        });
+    }
 //
 //    private void showToast(String s){
 //        Toast.makeText(this,s,Toast.LENGTH_SHORT).show();

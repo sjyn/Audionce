@@ -20,19 +20,14 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.1.1'
-}
-
-dependencies {
+    compile 'com.android.support:support-v4:22.+'
+    compile 'com.android.support:design:22.2.0'
+    compile 'com.nispok:snackbar:2.10.+'
+    compile 'com.github.rahatarmanahmed:circularprogressview:2.3.0'
+    compile 'com.android.support:appcompat-v7:22.2.0'
+    compile 'com.google.android.gms:play-services:7.5.0'
     compile 'com.parse.bolts:bolts-android:1.+'
     compile fileTree(dir: 'libs', include: 'Parse-*.jar')
-}
-
-dependencies {
-    compile 'com.android.support:support-v4:22.+'
-}
-dependencies {
-    compile 'com.android.support:appcompat-v7:22.1.1'
-    compile 'com.google.android.gms:play-services:7.3.0'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:22.2.0'
 }

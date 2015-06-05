@@ -4,66 +4,62 @@
     tools:context="ai.com.audionce.NewSoundActivity"
     android:background="@color/white">
 
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/sound_title_et"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="44dp"
+        android:textStyle="italic"
+        android:hint="@string/new_sound_title_hint"
+        android:gravity="center" />
 
-    <ImageButton
-        android:layout_width="55dp"
-        android:layout_height="55dp"
-        android:src="@android:drawable/ic_btn_speak_now"
-        android:tint="@color/black"
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="record"
+        android:textStyle="italic"
         android:id="@+id/record_button"
-        android:background="@null"
+        android:layout_marginTop="36dp"
         android:onClick="onRecordClick"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
-    <ImageButton
-        android:layout_width="55dp"
-        android:layout_height="55dp"
-        android:id="@+id/save_button"
-        android:layout_marginRight="48dp"
-        android:tint="@color/black"
-        android:src="@android:drawable/ic_menu_share"
         android:background="@null"
-        android:onClick="onSaveClick"
-        android:layout_alignParentTop="true"
+        android:layout_below="@+id/sound_title_et"
         android:layout_alignParentStart="true" />
 
-    <!--<Switch-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text=""-->
-        <!--android:id="@+id/pub_or_priv_switch"-->
-        <!--android:textStyle="italic"-->
-        <!--android:textOff="@string/priv"-->
-        <!--android:textOn="@string/pub"-->
-        <!--android:layout_above="@+id/record_button"-->
-        <!--android:layout_centerHorizontal="true" />-->
-
-    <!--<ListView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:id="@+id/new_sound_friend_share_view"-->
-        <!--android:layout_alignParentStart="true"-->
-        <!--android:layout_above="@+id/pub_or_priv_switch" />-->
-
-    <ImageButton
-        android:layout_width="55dp"
-        android:layout_height="55dp"
-        android:id="@+id/playback_button"
-        android:src="@android:drawable/ic_media_play"
-        android:tint="@color/black"
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="play"
+        android:id="@+id/play_button"
         android:background="@null"
+        android:textStyle="italic"
         android:onClick="onPlayClick"
-        android:layout_alignParentTop="true"
+        android:layout_alignTop="@+id/record_button"
         android:layout_alignParentEnd="true" />
 
-    <ProgressBar
-        style="@android:style/Widget.ProgressBar.Horizontal"
-        android:layout_width="fill_parent"
+    <Button
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progress"
-        android:layout_below="@+id/save_button"
-        android:layout_alignParentStart="true"
-        android:progressDrawable="@drawable/colored_progress_bar"/>
+        android:text="save"
+        android:id="@+id/save_sound"
+        android:onClick="onSaveClick"
+        android:textStyle="italic"
+        android:background="@null"
+        android:layout_alignTop="@+id/record_button"
+        android:layout_centerHorizontal="true" />
+
+    <com.github.rahatarmanahmed.cpv.CircularProgressView xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/progress_view"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        app:cpv_indeterminate="false"
+        app:cpv_maxProgress="30"
+        android:layout_below="@+id/save_sound"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        app:cpv_color="@color/progress_blue" />
+
 
 </RelativeLayout>

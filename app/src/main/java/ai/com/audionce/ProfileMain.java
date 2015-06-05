@@ -2,19 +2,19 @@ package ai.com.audionce;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,18 +31,14 @@ import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
 import com.parse.FindCallback;
-import com.parse.GetDataCallback;
 import com.parse.ParseException;
-import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,11 +50,13 @@ public class ProfileMain extends AppCompatActivity {
     private TextView username,friends,addSound, noSounds;
     private final int CAMERA_CODE = 1650;
     private final int GALLERY_CODE = 1660;
+    private final int CROP_CODE = 1770;
     private final String SAVE_PATH = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_PICTURES) + "/picture.png";
     private BitmapFactory.Options opts;
     private static Dialog chooser,editor;
     private Adapters.ProfileSoundsAdapter adapter;
+    private File f;
 
 
     @Override
@@ -66,7 +64,8 @@ public class ProfileMain extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_main);
-        File f = new File(SAVE_PATH);
+        f = new File(SAVE_PATH);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
         if(!f.exists()){
             try {
                 f.createNewFile();
@@ -90,16 +89,16 @@ public class ProfileMain extends AppCompatActivity {
             Log.e("PROFILE","User null");
         }
         username.setText(currentUser.getUsername());
-        final ParseFile picParse = (ParseFile)currentUser.get("profile_picture");
-        picParse.getDataInBackground(new GetDataCallback() {
-            @Override
-            public void done(byte[] bytes, ParseException e) {
-                if (e == null) {
-                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
-                    profilePic.setBackground(new BitmapDrawable(getResources(), bmp));
-                }
-            }
-        });
+//        final ParseFile picParse = (ParseFile)currentUser.get("profile_picture");
+//        picParse.getDataInBackground(new GetDataCallback() {
+//            @Override
+//            public void done(byte[] bytes, ParseException e) {
+//                if (e == null) {
+//                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
+//                    profilePic.setBackground(new BitmapDrawable(getResources(), bmp));
+//                }
+//            }
+//        });
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         friends.setText("Friends (" + sp.getInt("num_friends", 0) + ")");
 //        ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
@@ -271,14 +270,15 @@ public class ProfileMain extends AppCompatActivity {
                         switch (which) {
                             case 0:
                                 //TODO -- create new camera activity
-//                                Intent in = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//                                in.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(SAVE_PATH)));
-//                                startActivityForResult(in, CAMERA_CODE);
+                                Intent in = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                in.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(SAVE_PATH)));
+                                startActivityForResult(in, CAMERA_CODE);
                                 break;
                             case 1:
                                 Intent intent = new Intent();
                                 intent.setType("image/*");
                                 intent.setAction(Intent.ACTION_GET_CONTENT);
+//                                intent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(f));
                                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), GALLERY_CODE);
                                 break;
                         }
@@ -330,132 +330,53 @@ public class ProfileMain extends AppCompatActivity {
         profilePic.setEnabled(false);
         switch (requestCode){
             case CAMERA_CODE:
-                Log.i("AUD","Camera code");
-                if(resultCode == RESULT_OK){
-                    Log.i("AUD","Camera Okay");
-                    new AsyncTask<Boolean,Void,Boolean>(){
-                        private Bitmap bmp;
-                        private BitmapFactory.Options options;
-                        private int sw,sh;
-                        private ParseFile newPic;
-
-                        @Override
-                        public void onPreExecute(){
-                            profilePic.setImageBitmap(null);
-                            profilePic.setImageDrawable(null);
-                            options = opts;
-                            sw = profilePic.getWidth();
-                            sh = profilePic.getHeight();
-                            Log.i("AUD","Pre exec finished");
-                        }
-
-                        @Override
-                        public Boolean doInBackground(Boolean... b){
-                            Matrix mat = new Matrix();
-                            mat.postRotate(270);
-                            bmp = BitmapFactory.decodeFile(SAVE_PATH,options);
-                            bmp = Bitmap.createBitmap(bmp,0,0,sw,sh,mat,true);
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            bmp.compress(Bitmap.CompressFormat.PNG,100,baos);
-                            newPic = new ParseFile("file",baos.toByteArray());
-                            try {
-                                newPic.save();
-                                return true;
-                            } catch (ParseException pe){
-                                return false;
-                            }
-                        }
-
-                        @Override
-                        public void onPostExecute(Boolean b){
-                            Log.i("AUD","post exec started");
-                            if(b){
-                                profilePic.setImageBitmap(bmp);
-                                currentUser.put("profile_picture", newPic);
-                                currentUser.saveInBackground(new SaveCallback() {
-                                    @Override
-                                    public void done(ParseException e) {
-                                        if(e == null){
-//                                            Toast.makeText(getApplicationContext(),
-//                                                    "Saved Picture!", Toast.LENGTH_SHORT).show();
-                                            Log.e("AUD","pic saved from camera");
-                                        } else {
-//                                            Toast.makeText(getApplicationContext(),
-//                                                    "Failed to save Picture",Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
-                                });
-
-                            } else {
-//                                Toast.makeText(getApplicationContext(),
-//                                        "Failed to save Picture",Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }.execute();
+                Log.i("AUD", "Camera code");
+                if (resultCode == RESULT_OK) {
+                    Intent intent = new Intent("com.android.camera.action.CROP");
+                    intent.setDataAndType(Uri.fromFile(f), "image/*");
+                    intent.putExtra("crop", "true");
+                    intent.putExtra("aspectX", 1);
+                    intent.putExtra("aspectY", 1);
+                    intent.putExtra("outputX", 130);
+                    intent.putExtra("outputY", 130);
+                    intent.putExtra("return-data", true);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+                    startActivityForResult(intent, CROP_CODE);
                 }
                 break;
             case GALLERY_CODE:
-                if(resultCode == RESULT_OK) {
-                    new AsyncTask<Object,Void,Boolean>(){
-                        private Intent data;
-                        private Context ths;
-                        private BitmapFactory.Options options;
-                        private int sw,sh;
-                        private Bitmap map;
-                        private ParseFile pf;
-
-                        @Override
-                        public void onPreExecute(){
-                            profilePic.setImageBitmap(null);
-                            profilePic.setImageDrawable(null);
-                            profilePic.setBackground(null);
-                            options = opts;
-                            sw = profilePic.getWidth();
-                            sh = profilePic.getHeight();
-                            Log.i("AUD","Galllery h: " + sh + " w: " + sw);
-                        }
-
-                        @Override
-                        public Boolean doInBackground(Object... o){
-                            try{
-                                data = (Intent)o[1];
-                                ths = (Context)o[0];
-                                Uri selectedImage = data.getData();
-                                InputStream is = ths.getContentResolver().openInputStream(selectedImage);
-                                map = BitmapFactory.decodeStream(is, null, options);
-                                is.close();
-                                map = Bitmap.createScaledBitmap(map,sw,sh,false);
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                map.compress(Bitmap.CompressFormat.PNG,100,baos);
-                                pf = new ParseFile("file",baos.toByteArray());
-                                pf.save();
-                                return true;
-                            } catch (Exception e){
-                                return false;
-                            }
-                        }
-
-                        @Override
-                        public void onPostExecute(Boolean b){
-                            if(b){
-                                profilePic.setImageBitmap(map);
-                                currentUser.put("profile_picture", pf);
-                                currentUser.saveInBackground(new SaveCallback() {
-                                    @Override
-                                    public void done(ParseException e) {
-                                        if(e == null){
-                                            Log.i("AUD","Saved pic from gallery");
-                                        }
-                                        profilePic.setEnabled(true);
-                                    }
-                                });
-                            }
-                        }
-                    }.execute(this,data);
+                if (resultCode == RESULT_OK) {
+                    Intent intent = new Intent("com.android.camera.action.CROP");
+//                    File file = new File(data.getDataString());
+                    intent.setDataAndType(Uri.fromFile(new File(data.getData().getPath())), "image/*");
+                    intent.putExtra("crop", "true");
+                    intent.putExtra("aspectX", 1);
+                    intent.putExtra("aspectY", 1);
+                    intent.putExtra("outputX", 130);
+                    intent.putExtra("outputY", 130);
+                    intent.putExtra("return-data", true);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+                    startActivityForResult(intent, CROP_CODE);
                 }
+                break;
+            case CROP_CODE:
+                if (resultCode == RESULT_OK)
+                    profilePic.setImageBitmap(BitmapFactory.decodeFile(data.getDataString()));
                 break;
             default:
                 break;
         }
+    }
+
+    private String getPath(Uri yuri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = managedQuery(yuri, projection, null, null, null);
+        if (cursor != null) {
+            int column_index = cursor
+                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        }
+        return yuri.getPath();
     }
 }

@@ -7,4 +7,6 @@
     <color name="black">#000000</color>
     <color name="clear">#00FFFFFF</color>
     <color name="light_red">#B3DF0101</color>
+    <color name="camera_splash_grey">#D9686868</color>
+    <color name="progress_blue">#000066</color>
 </resources>

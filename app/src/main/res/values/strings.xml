@@ -39,4 +39,6 @@
         your location, you will be taken to your default location settings, where you can choose
         to enable your location.
     </string>
+    <string name="title_activity_camera">CameraActivity</string>
+    <string name="new_sound_title_hint">Title</string>
 </resources>

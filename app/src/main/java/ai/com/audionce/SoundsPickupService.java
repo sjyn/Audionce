@@ -5,13 +5,16 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -51,6 +54,7 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
         Log.e("AUD", "Service starting");
         playQueue = new PrioritizedQueue<>();
         playingSound = null;
+
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 30, new SoundLocationListener());
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -91,7 +95,7 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 if (tPlayer != null) {
                     if (tPlayer.isPlaying())
-                        tPlayer.setVolume(0.1f, 0.1f);
+                        tPlayer.pause();
                 }
                 break;
         }
@@ -113,7 +117,8 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
             tPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             playingSound = playQueue.dequeueByPriority();
             makeNotification(playingSound.getTitle());
-            tPlayer.setDataSource(playingSound.getUrl());
+            Log.e("AUD", playingSound.getUrl());
+            tPlayer.setDataSource(getApplicationContext(), Uri.parse(playingSound.getUrl()));
             tPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
@@ -154,7 +159,7 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                                 sLoc.setLatitude(sLatLng.latitude);
                                 s.setPriority(sLoc.distanceTo(l));
                                 playQueue.enqueue(s);
-                                Log.e("AUD", "playQueue still empty? " + playQueue.isEmpty());
+//                                Log.e("AUD", "playQueue still empty? " + playQueue.isEmpty());
                             } catch (Exception ex){
                                 Utilities.makeLogFromThrowable(ex);
                             }
@@ -199,10 +204,13 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(android.R.drawable.ic_media_play)
+                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.launcher))
                         .setContentTitle("Audionce")
                         .setContentText(title + " playing.")
                         .setContentIntent(pi);
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        v.vibrate(300);
         manager.notify(Utilities.NOTIFICATION_ID, builder.build());
     }
 }
