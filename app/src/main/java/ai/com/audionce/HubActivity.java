@@ -39,7 +39,6 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap tMap;
     private int i;
     private LatLng mLoc;
-//    private boolean isSoundPlaying;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +47,6 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-//        isSoundPlaying = false;
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         if (sp.getBoolean("should_start_service_from_hub", true))
             Utilities.startSoundPickupService(this);
@@ -99,44 +97,6 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                 return false;
             }
         });
-//        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//            @Override
-//            public boolean onMarkerClick(Marker marker) {
-//                LatLng markerLoc = marker.getPosition();
-//                Location mark = new Location("");
-//                mark.setLongitude(markerLoc.longitude);
-//                mark.setLatitude(markerLoc.latitude);
-//                Location myLoc = new Location("");
-//                myLoc.setLatitude(mLoc.latitude);
-//                myLoc.setLongitude(mLoc.longitude);
-//                Log.e("AUD", "Marker tapped; you are " + mark.distanceTo(myLoc) + "m away");
-//                if (mark.distanceTo(myLoc) <= 40) {
-//                    ParseQuery<ParseObject> gSound = ParseQuery.getQuery("Sounds");
-//                    gSound.whereEqualTo("location",
-//                            new ParseGeoPoint(mark.getLatitude(), mark.getLongitude()));
-//                    gSound.findInBackground(new FindCallback<ParseObject>() {
-//                        @Override
-//                        public void done(List<ParseObject> list, ParseException e) {
-//                            if(e == null){
-//                                Sound s = Sound.parseSound(list.get(0));
-//                                if(!isSoundPlaying) {
-//                                    try {
-//                                        playSound(s);
-//                                        Log.e("AUD","Playing Sound");
-//                                    } catch (IOException ioe){
-//                                        showToast("Error Playing Media");
-//                                        Log.e("AUD", Log.getStackTraceString(ioe));
-//                                    }
-//                                }
-//                            } else {
-//                                Log.e("AUD",Log.getStackTraceString(e));
-//                            }
-//                        }
-//                    });
-//                }
-//                return false;
-//            }
-//        });
         tMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
@@ -172,7 +132,6 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
             @Override
             public void onMyLocationChange(Location location) {
                 mLoc = new LatLng(location.getLatitude(), location.getLongitude());
-//                Log.e("AUD","lat: " + mLoc.latitude + " long: " + mLoc.longitude);
                 if (i == 0) {
                     tMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLoc, 17), 4000, null);
                     i++;
@@ -211,28 +170,30 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void playSound(Sound s) throws IOException {
-        MediaPlayer mp = new MediaPlayer();
+        String tmpPath = getCacheDir().getPath() + "/halp.aac";
+        final MediaPlayer mp = new MediaPlayer();
         mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        Log.e("AUD", s.getUrl());
         mp.setDataSource(s.getUrl());
-        mp.prepareAsync();
         mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
-            public void onPrepared(MediaPlayer mp) {
+            public void onPrepared(MediaPlayer medp) {
                 mp.start();
-//                isSoundPlaying = true;
+            }
+        });
+        mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                Log.e("AUD", what + "");
+                return false;
             }
         });
         mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
-            public void onCompletion(MediaPlayer mp) {
+            public void onCompletion(MediaPlayer medp) {
                 mp.release();
-                mp = null;
-//                isSoundPlaying = false;
             }
         });
+        mp.prepareAsync();
     }
-//
-//    private void showToast(String s){
-//        Toast.makeText(this,s,Toast.LENGTH_SHORT).show();
-//    }
 }
