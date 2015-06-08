@@ -1,23 +1,63 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="ai.com.audionce.CameraActivity">
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="horizontal"
+    android:background="@color/black">
 
-    <SurfaceView
+
+    <FrameLayout
+        android:id="@+id/camera_preview"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/surfaceView"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_above="@+id/linearLayout">
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="70dp"
-        android:background="@color/camera_splash_grey"
-        android:text=""
-        android:id="@+id/textView2"
-        android:layout_alignBottom="@+id/surfaceView"
-        android:layout_alignStart="@+id/surfaceView"
-        android:layout_alignEnd="@+id/surfaceView" />
+
+        <ImageButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/imageButton"
+            android:background="@null"
+            android:src="@android:drawable/stat_notify_sync"
+            android:onClick="toggleCameraLense"
+            android:layout_gravity="right|top" />
+
+        <ImageButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/imageButton2"
+            android:background="@null"
+            android:onClick="adjustResolution"
+            android:src="@android:drawable/ic_menu_view"
+            android:layout_gravity="top|center" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/linearLayout">
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:layout_weight="1"
+            android:onClick="onSavePressed"
+            android:background="@color/ab_pink"
+            android:id="@+id/save_button" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_weight="1"
+            android:text="Capture"
+            android:background="@color/ab_pink"
+            android:id="@+id/capture_button" />
+    </LinearLayout>
+
+
 </RelativeLayout>

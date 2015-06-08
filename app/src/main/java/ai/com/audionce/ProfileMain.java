@@ -5,12 +5,13 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -31,12 +32,15 @@ import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
 import com.parse.FindCallback;
+import com.parse.GetDataCallback;
 import com.parse.ParseException;
+import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,35 +93,22 @@ public class ProfileMain extends AppCompatActivity {
             Log.e("PROFILE","User null");
         }
         username.setText(currentUser.getUsername());
-//        final ParseFile picParse = (ParseFile)currentUser.get("profile_picture");
-//        picParse.getDataInBackground(new GetDataCallback() {
-//            @Override
-//            public void done(byte[] bytes, ParseException e) {
-//                if (e == null) {
-//                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
-//                    profilePic.setBackground(new BitmapDrawable(getResources(), bmp));
-//                }
-//            }
-//        });
+        final ParseFile picParse = (ParseFile) currentUser.get("profile_picture");
+        picParse.getDataInBackground(new GetDataCallback() {
+            @Override
+            public void done(byte[] bytes, ParseException e) {
+                if (e == null) {
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
+                    profilePic.setBackground(new BitmapDrawable(getResources(), bmp));
+                }
+            }
+        });
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         friends.setText("Friends (" + sp.getInt("num_friends", 0) + ")");
-//        ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
-//        fQue.whereEqualTo("user", currentUser);
-//        fQue.findInBackground(new FindCallback<ParseObject>() {
-//            @Override
-//            public void done(List<ParseObject> list, ParseException e) {
-//                if (e == null) {
-//                    ParseObject lst = list.get(0);
-//                    List<ParseUser> fnds = (List<ParseUser>) lst.get("all_friends");
-//                    friends.setText("Friends (" + fnds.size() + ")");
-//                } else {
-//                    Log.e("AUD", Log.getStackTraceString(e));
-//                }
-//            }
-//        });
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.e("AUD", "Pressed profile pic");
                 createAndDisplayChooser();
             }
         });
@@ -202,6 +193,13 @@ public class ProfileMain extends AppCompatActivity {
                 }
             }
         });
+        profilePic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("AUD", "profile picture pressed");
+                createAndDisplayChooser();
+            }
+        });
         loadSounds();
     }
 
@@ -269,17 +267,23 @@ public class ProfileMain extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                //TODO -- create new camera activity
-                                Intent in = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                in.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(SAVE_PATH)));
-                                startActivityForResult(in, CAMERA_CODE);
+                                startActivityForResult(new Intent(getApplicationContext(),
+                                        CameraActivity.class), CAMERA_CODE);
                                 break;
                             case 1:
-                                Intent intent = new Intent();
-                                intent.setType("image/*");
-                                intent.setAction(Intent.ACTION_GET_CONTENT);
+                                if (Build.VERSION.SDK_INT == 19) {
+                                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                                    intent.setType("image/*");
+                                    startActivityForResult(intent, GALLERY_CODE);
+                                } else {
+                                    Intent intent = new Intent();
+                                    intent.setType("image/*");
+                                    intent.setAction(Intent.ACTION_GET_CONTENT);
 //                                intent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(f));
-                                startActivityForResult(Intent.createChooser(intent, "Select Picture"), GALLERY_CODE);
+                                    startActivityForResult(Intent.createChooser(intent,
+                                            "Select Picture"), GALLERY_CODE);
+                                }
                                 break;
                         }
                     }
@@ -288,20 +292,20 @@ public class ProfileMain extends AppCompatActivity {
         chooser.show();
     }
 
-    @Override
-    public void onPause(){
-        super.onPause();
-        if(chooser != null) {
-            if(chooser.isShowing())
-                chooser.dismiss();
-            chooser = null;
-        }
-        if(editor != null){
-            if(editor.isShowing())
-                editor.dismiss();
-            editor = null;
-        }
-    }
+//    @Override
+//    public void onPause(){
+//        super.onPause();
+//        if(chooser != null) {
+//            if(chooser.isShowing())
+//                chooser.dismiss();
+//            chooser = null;
+//        }
+//        if(editor != null){
+//            if(editor.isShowing())
+//                editor.dismiss();
+//            editor = null;
+//        }
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -325,6 +329,7 @@ public class ProfileMain extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode, resultCode, data);
         Log.i("AUD","In act res");
         Log.i("AUD","Request Code: " + requestCode);
         profilePic.setEnabled(false);
@@ -340,15 +345,25 @@ public class ProfileMain extends AppCompatActivity {
                     intent.putExtra("outputX", 130);
                     intent.putExtra("outputY", 130);
                     intent.putExtra("return-data", true);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(SAVE_PATH)));
                     startActivityForResult(intent, CROP_CODE);
                 }
                 break;
             case GALLERY_CODE:
                 if (resultCode == RESULT_OK) {
+                    Uri yuri;
+                    if (Build.VERSION.SDK_INT == 19) {
+                        yuri = data.getData();
+//
+                    } else {
+                        yuri = data.getData();
+//                        f = new File(yuri.getPath());
+                    }
+                    Log.e("AUD", "URI is null? " + (yuri == null ? "yes" : yuri.getPath()));
                     Intent intent = new Intent("com.android.camera.action.CROP");
 //                    File file = new File(data.getDataString());
-                    intent.setDataAndType(Uri.fromFile(new File(data.getData().getPath())), "image/*");
+//                    File file = new File(getRealPathFromUri(data.getData()));
+                    intent.setDataAndType(yuri, "image/*");
                     intent.putExtra("crop", "true");
                     intent.putExtra("aspectX", 1);
                     intent.putExtra("aspectY", 1);
@@ -360,23 +375,98 @@ public class ProfileMain extends AppCompatActivity {
                 }
                 break;
             case CROP_CODE:
-                if (resultCode == RESULT_OK)
-                    profilePic.setImageBitmap(BitmapFactory.decodeFile(data.getDataString()));
+                if (resultCode == RESULT_OK) {
+                    final Bitmap bmp = BitmapFactory.decodeFile(SAVE_PATH);
+                    profilePic.setImageBitmap(bmp);
+                    new AsyncTask<Void, Void, Boolean>() {
+                        private ParseUser pu = currentUser;
+                        private Bitmap bmpcpy = bmp;
+
+                        public Boolean doInBackground(Void... v) {
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            bmpcpy.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                            ParseFile pf = new ParseFile("file.png", baos.toByteArray());
+                            try {
+                                pf.save();
+                                pu.put("profile_picture", pf);
+                                pu.save();
+                            } catch (Exception ex) {
+                                Utilities.makeLogFromThrowable(ex);
+                                return false;
+                            }
+                            return true;
+                        }
+
+                        public void onPostExecute(Boolean res) {
+                            if (res)
+                                Log.e("AUD", "File succsessfully saved");
+                        }
+                    }.execute();
+                }
                 break;
             default:
                 break;
         }
+        profilePic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("AUD", "profile picture pressed");
+                createAndDisplayChooser();
+            }
+        });
     }
 
-    private String getPath(Uri yuri) {
-        String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = managedQuery(yuri, projection, null, null, null);
-        if (cursor != null) {
-            int column_index = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        }
-        return yuri.getPath();
-    }
+//    private String getPath(Uri yuri) {
+//        String[] projection = {MediaStore.Images.Media.DATA};
+//        Cursor cursor = managedQuery(yuri, projection, null, null, null);
+//        if (cursor != null) {
+//            int column_index = cursor
+//                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+//            cursor.moveToFirst();
+//            return cursor.getString(column_index);
+//        }
+//        return yuri.getPath();
+//    }
+
+//    private static int getCameraOrientationChange(Context x, Uri imageUri, String imagePath){
+//        int rotate = 0;
+//        try {
+//            x.getContentResolver().notifyChange(imageUri, null);
+//            File imageFile = new File(imagePath);
+//            ExifInterface exif = new ExifInterface(
+//                    imageFile.getAbsolutePath());
+//            int orientation = exif.getAttributeInt(
+//                    ExifInterface.TAG_ORIENTATION,
+//                    ExifInterface.ORIENTATION_NORMAL);
+//            switch (orientation) {
+//                case ExifInterface.ORIENTATION_ROTATE_270:
+//                    rotate = 270;
+//                    break;
+//                case ExifInterface.ORIENTATION_ROTATE_180:
+//                    rotate = 180;
+//                    break;
+//                case ExifInterface.ORIENTATION_ROTATE_90:
+//                    rotate = 90;
+//                    break;
+//            }
+//            Log.v("AUD", "Exif orientation: " + orientation);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return rotate;
+//    }
+
+//    private String getRealPathFromUri(Uri yuri){
+//        String result = "";
+//        Cursor cur = getContentResolver().query(yuri,null,null,null,null);
+//        if(cur == null)
+//            result = yuri.getPath();
+//        else {
+//            cur.moveToFirst();
+//            int idx = cur.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+//            result = cur.getString(idx);
+//            cur.close();
+//        }
+//        return result;
+//    }
 }

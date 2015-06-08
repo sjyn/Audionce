@@ -39,7 +39,7 @@ public class NewSoundActivity extends AppCompatActivity {
     private Button play, save, record;
     private final ParseUser currUser = ParseUser.getCurrentUser();
     private MediaRecorder mr;
-    private boolean recording, playing;
+    private boolean recording, playing, saved;
     private EditText et;
     private String filePath;
     private CountDownTimer cdt;
@@ -56,6 +56,7 @@ public class NewSoundActivity extends AppCompatActivity {
         et = (EditText) findViewById(R.id.sound_title_et);
         cpv = (CircularProgressView) findViewById(R.id.progress_view);
         filePath = getCacheDir().getPath() + "/tmp_mus.aac";
+        saved = false;
         play.setEnabled(false);
         save.setEnabled(false);
     }
@@ -84,6 +85,7 @@ public class NewSoundActivity extends AppCompatActivity {
     }
 
     public void onRecordClick(View v){
+        saved = false;
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         cpv.setProgress(0);
@@ -161,74 +163,79 @@ public class NewSoundActivity extends AppCompatActivity {
     }
 
     public void onSaveClick(View v){
-        final String title = et.getText().toString().trim();
-        if (title.equals("")) {
-            Utilities.makeToast(this, "Please Name Your Sound.");
+        if (!saved) {
+            final String title = et.getText().toString().trim();
+            if (title.equals("")) {
+                Utilities.makeToast(this, "Please Name Your Sound.");
+            } else {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                new AsyncTask<Void, Void, Boolean>() {
+                    private String titleCopy = title;
+                    private String soundFileLoc = filePath;
+                    private LocationManager manager;
+                    private ParseUser tUser;
+
+                    @Override
+                    public void onPreExecute() {
+                        play.setEnabled(false);
+                        record.setEnabled(false);
+                        save.setText("Saving...");
+                        save.setEnabled(false);
+                        tUser = currUser;
+                        manager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                    }
+
+                    @Override
+                    public Boolean doInBackground(Void... v) {
+                        try {
+                            Location l = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                            if (l == null) {
+                                l = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                            }
+                            ParseGeoPoint pgp = new ParseGeoPoint(l.getLatitude(), l.getLongitude());
+                            ParseQuery<ParseObject> soundsThatNeedToBeDeleted = ParseQuery.getQuery("Sounds")
+                                    .whereWithinKilometers("location", pgp, Utilities.SOUNDS_DISTANCE_APART_KM);
+                            List<ParseObject> results = soundsThatNeedToBeDeleted.find();
+                            for (ParseObject po : results) {
+                                po.delete();
+                            }
+                            File f = new File(soundFileLoc);
+                            FileInputStream fis = new FileInputStream(f);
+                            byte[] fArray = new byte[(int) f.length()];
+                            fis.read(fArray);
+                            fis.close();
+                            ParseFile pf = new ParseFile((long) (Math.random() * Long.MAX_VALUE) + ".acc", fArray);
+                            pf.save();
+                            ParseObject myObj = new ParseObject("Sounds");
+                            myObj.put("location", pgp);
+                            myObj.put("title", titleCopy);
+                            myObj.put("file", pf);
+                            myObj.save();
+                            tUser.add("sounds", myObj);
+                            tUser.save();
+                        } catch (Exception ex) {
+                            Utilities.makeLogFromThrowable(ex);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public void onPostExecute(Boolean res) {
+                        if (res) {
+                            showSnackbar();
+                            saved = true;
+                        }
+                        play.setEnabled(true);
+                        record.setEnabled(true);
+                        save.setText("save");
+                        save.setEnabled(true);
+                    }
+                }.execute();
+            }
         } else {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-            new AsyncTask<Void, Void, Boolean>() {
-                private String titleCopy = title;
-                private String soundFileLoc = filePath;
-                private LocationManager manager;
-                private ParseUser tUser;
-
-                @Override
-                public void onPreExecute() {
-                    play.setEnabled(false);
-                    record.setEnabled(false);
-                    save.setText("Saving...");
-                    save.setEnabled(false);
-                    tUser = currUser;
-                    manager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                }
-
-                @Override
-                public Boolean doInBackground(Void... v) {
-                    try {
-                        Location l = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        if (l == null) {
-                            l = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                        }
-                        ParseGeoPoint pgp = new ParseGeoPoint(l.getLatitude(), l.getLongitude());
-                        ParseQuery<ParseObject> soundsThatNeedToBeDeleted = ParseQuery.getQuery("Sounds")
-                                .whereWithinKilometers("location", pgp, Utilities.SOUNDS_DISTANCE_APART_KM);
-                        List<ParseObject> results = soundsThatNeedToBeDeleted.find();
-                        for (ParseObject po : results) {
-                            po.delete();
-                        }
-                        File f = new File(soundFileLoc);
-                        FileInputStream fis = new FileInputStream(f);
-                        byte[] fArray = new byte[(int) f.length()];
-                        fis.read(fArray);
-                        fis.close();
-                        ParseFile pf = new ParseFile((long) (Math.random() * Long.MAX_VALUE) + ".acc", fArray);
-                        pf.save();
-                        ParseObject myObj = new ParseObject("Sounds");
-                        myObj.put("location", pgp);
-                        myObj.put("title", titleCopy);
-                        myObj.put("file", pf);
-                        myObj.save();
-                        tUser.add("sounds", myObj);
-                        tUser.save();
-                    } catch (Exception ex) {
-                        Utilities.makeLogFromThrowable(ex);
-                        return false;
-                    }
-                    return true;
-                }
-
-                @Override
-                public void onPostExecute(Boolean res) {
-                    if (res) {
-                        showSnackbar();
-                    }
-                    play.setEnabled(true);
-                    record.setEnabled(true);
-                    save.setText("save");
-                    save.setEnabled(true);
-                }
-            }.execute();
+            Utilities.makeToast(this, "You have already saved this sound!");
         }
     }
 
