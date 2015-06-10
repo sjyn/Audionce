@@ -17,6 +17,7 @@
             android:layout_height="50dp"
             android:id="@+id/imageButton"
             android:background="@null"
+            android:tint="@color/white"
             android:src="@android:drawable/stat_notify_sync"
             android:onClick="toggleCameraLense"
             android:layout_gravity="right|top" />
@@ -27,9 +28,20 @@
             android:id="@+id/imageButton2"
             android:background="@null"
             android:onClick="adjustResolution"
+            android:tint="@color/white"
             android:src="@android:drawable/ic_menu_view"
             android:layout_gravity="top|center" />
     </FrameLayout>
+
+    <com.github.rahatarmanahmed.cpv.CircularProgressView xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/progress_view"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        app:cpv_indeterminate="true"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="50dp"
+        app:cpv_color="@color/white" />
 
     <LinearLayout
         android:orientation="horizontal"
@@ -43,7 +55,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Save"
+            android:text="@string/save_picture"
             android:layout_weight="1"
             android:onClick="onSavePressed"
             android:background="@color/ab_pink"
@@ -54,7 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_weight="1"
-            android:text="Capture"
+            android:text="@string/capture_photo"
             android:background="@color/ab_pink"
             android:id="@+id/capture_button" />
     </LinearLayout>

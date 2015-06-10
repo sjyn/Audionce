@@ -12,6 +12,10 @@ import android.preference.PreferenceManager;
 
 import com.newline.sjyn.audionce.Utilities;
 
+//TODO -- Logout of current profile
+//TODO -- About
+//TODO -- delete all sounds
+//TODO -- this would all be easier in javascript :(
 public class Settings extends Activity {
 
     @Override

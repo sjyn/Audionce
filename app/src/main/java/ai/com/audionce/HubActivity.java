@@ -33,7 +33,7 @@ import com.parse.ParseUser;
 import java.io.IOException;
 import java.util.List;
 
-
+//TODO -- how to make action bar sit under translucent status bar?
 public class HubActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap tMap;

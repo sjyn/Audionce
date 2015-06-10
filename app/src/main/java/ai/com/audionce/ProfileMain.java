@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -46,7 +47,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
+//TODO -- Circular profile picture views?
+//TODO -- default pic doesn't dl correctly
+//TODO -- Play and pause sounds on profile page
+//TODO -- fix URI from gallery
 public class ProfileMain extends AppCompatActivity {
     private ParseUser currentUser;
     private ListView sounds;
@@ -280,7 +284,6 @@ public class ProfileMain extends AppCompatActivity {
                                     Intent intent = new Intent();
                                     intent.setType("image/*");
                                     intent.setAction(Intent.ACTION_GET_CONTENT);
-//                                intent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(f));
                                     startActivityForResult(Intent.createChooser(intent,
                                             "Select Picture"), GALLERY_CODE);
                                 }
@@ -291,21 +294,6 @@ public class ProfileMain extends AppCompatActivity {
         chooser = builder.create();
         chooser.show();
     }
-
-//    @Override
-//    public void onPause(){
-//        super.onPause();
-//        if(chooser != null) {
-//            if(chooser.isShowing())
-//                chooser.dismiss();
-//            chooser = null;
-//        }
-//        if(editor != null){
-//            if(editor.isShowing())
-//                editor.dismiss();
-//            editor = null;
-//        }
-//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -351,19 +339,22 @@ public class ProfileMain extends AppCompatActivity {
                 break;
             case GALLERY_CODE:
                 if (resultCode == RESULT_OK) {
-                    Uri yuri;
-                    if (Build.VERSION.SDK_INT == 19) {
-                        yuri = data.getData();
+                    Uri yuri = data.getData();
+                    String selectedPath = "";
+//                    if(Build.VERSION.SDK_INT < 19){
+                    selectedPath = getPath(yuri);
+//                    } else {
+//                        ParcelFileDescriptor pfd;
+//                        try {
+//                            pfd = getContentResolver().openFileDescriptor(yuri,"r");
+//                            FileDescriptor fd = pfd.getFileDescriptor();
 //
-                    } else {
-                        yuri = data.getData();
-//                        f = new File(yuri.getPath());
-                    }
-                    Log.e("AUD", "URI is null? " + (yuri == null ? "yes" : yuri.getPath()));
+//                        } catch (Exception ex){
+//                            Utilities.makeLogFromThrowable(ex);
+//                        }
+//                    }
                     Intent intent = new Intent("com.android.camera.action.CROP");
-//                    File file = new File(data.getDataString());
-//                    File file = new File(getRealPathFromUri(data.getData()));
-                    intent.setDataAndType(yuri, "image/*");
+                    intent.setDataAndType(Uri.fromFile(new File(selectedPath)), "image/*");
                     intent.putExtra("crop", "true");
                     intent.putExtra("aspectX", 1);
                     intent.putExtra("aspectY", 1);
@@ -416,57 +407,18 @@ public class ProfileMain extends AppCompatActivity {
         });
     }
 
-//    private String getPath(Uri yuri) {
-//        String[] projection = {MediaStore.Images.Media.DATA};
-//        Cursor cursor = managedQuery(yuri, projection, null, null, null);
-//        if (cursor != null) {
-//            int column_index = cursor
-//                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-//            cursor.moveToFirst();
-//            return cursor.getString(column_index);
-//        }
-//        return yuri.getPath();
-//    }
-
-//    private static int getCameraOrientationChange(Context x, Uri imageUri, String imagePath){
-//        int rotate = 0;
-//        try {
-//            x.getContentResolver().notifyChange(imageUri, null);
-//            File imageFile = new File(imagePath);
-//            ExifInterface exif = new ExifInterface(
-//                    imageFile.getAbsolutePath());
-//            int orientation = exif.getAttributeInt(
-//                    ExifInterface.TAG_ORIENTATION,
-//                    ExifInterface.ORIENTATION_NORMAL);
-//            switch (orientation) {
-//                case ExifInterface.ORIENTATION_ROTATE_270:
-//                    rotate = 270;
-//                    break;
-//                case ExifInterface.ORIENTATION_ROTATE_180:
-//                    rotate = 180;
-//                    break;
-//                case ExifInterface.ORIENTATION_ROTATE_90:
-//                    rotate = 90;
-//                    break;
-//            }
-//            Log.v("AUD", "Exif orientation: " + orientation);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return rotate;
-//    }
-
-//    private String getRealPathFromUri(Uri yuri){
-//        String result = "";
-//        Cursor cur = getContentResolver().query(yuri,null,null,null,null);
-//        if(cur == null)
-//            result = yuri.getPath();
-//        else {
-//            cur.moveToFirst();
-//            int idx = cur.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-//            result = cur.getString(idx);
-//            cur.close();
-//        }
-//        return result;
-//    }
+    private String getPath(Uri uri) {
+        if (uri == null) {
+            return null;
+        }
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            int column_index = cursor
+                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        }
+        return uri.getPath();
+    }
 }

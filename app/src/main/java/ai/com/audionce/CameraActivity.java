@@ -1,7 +1,6 @@
 package ai.com.audionce;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,6 +25,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.newline.sjyn.audionce.Utilities;
 
 import java.io.ByteArrayOutputStream;
@@ -34,7 +34,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 
-
+//TODO -- Hide status bar on all camera updates
+//TODO -- disable buttons on save
+//TODO -- provide cancel button
+@SuppressWarnings({"deprecation"})
 public class CameraActivity extends AppCompatActivity {
     private Camera camera;
     private CameraPreview cPre;
@@ -43,6 +46,7 @@ public class CameraActivity extends AppCompatActivity {
     private boolean cameraFacingFront = false;
     private ImageButton switchView, resView;
     private Button save, capture;
+    private CircularProgressView cpv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +64,8 @@ public class CameraActivity extends AppCompatActivity {
         resView = (ImageButton) findViewById(R.id.imageButton2);
         save = (Button) findViewById(R.id.save_button);
         capture = (Button) findViewById(R.id.capture_button);
+        cpv = (CircularProgressView) findViewById(R.id.progress_view);
+        cpv.setVisibility(View.GONE);
         camera = getCameraInstance();
         initializeCamera();
         capture.setOnClickListener(new View.OnClickListener() {
@@ -82,15 +88,14 @@ public class CameraActivity extends AppCompatActivity {
     public void onSavePressed(View v) {
         new AsyncTask<Void, Void, Boolean>() {
             private File file;
-            private ProgressDialog pd;
 
             @Override
             public void onPreExecute() {
                 super.onPreExecute();
                 file = new File(SAVE_PATH);
-                pd = ProgressDialog.show(CameraActivity.this, "Saving Picture...",
-                        "We are saving your picture. Depending on the resolution, this could" +
-                                " take a few seconds.", true);
+                cpv.setVisibility(View.VISIBLE);
+                cpv.startAnimation();
+
             }
 
             @Override
@@ -120,7 +125,8 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(Boolean aBoolean) {
                 super.onPostExecute(aBoolean);
-                pd.dismiss();
+                cpv.clearAnimation();
+                cpv.setVisibility(View.GONE);
                 if (aBoolean) {
                     Intent intent = new Intent();
                     setResult(RESULT_OK, intent);
@@ -132,7 +138,6 @@ public class CameraActivity extends AppCompatActivity {
                 }
             }
         }.execute();
-
     }
 
     private void onFailure() {

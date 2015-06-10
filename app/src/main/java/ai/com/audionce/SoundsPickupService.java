@@ -32,6 +32,10 @@ import com.parse.ParseQuery;
 import java.io.IOException;
 import java.util.List;
 
+
+//TODO -- Play multiple sounds at once using SoundPool
+//TODO -- shave
+
 public class SoundsPickupService extends Service implements AudioManager.OnAudioFocusChangeListener {
     private LocationManager manager;
     private PrioritizedQueue<Sound> playQueue;
@@ -203,10 +207,10 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                 0, toHub, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
-                        .setSmallIcon(android.R.drawable.ic_media_play)
+                        .setSmallIcon(R.drawable.ic_notif_icon)
                         .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.launcher))
                         .setContentTitle("Audionce")
-                        .setContentText(title + " playing.")
+                        .setContentText("Playing " + title)
                         .setContentIntent(pi);
         NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);

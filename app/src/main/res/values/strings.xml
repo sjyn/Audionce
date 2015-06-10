@@ -41,4 +41,6 @@
     </string>
     <string name="title_activity_camera">CameraActivity</string>
     <string name="new_sound_title_hint">Title</string>
+    <string name="save_picture">Save</string>
+    <string name="capture_photo">Capture</string>
 </resources>

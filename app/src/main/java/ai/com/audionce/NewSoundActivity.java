@@ -27,14 +27,12 @@ import com.nispok.snackbar.SnackbarManager;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.List;
 
-
+//TODO -- implement shared sounds
 public class NewSoundActivity extends AppCompatActivity {
     private Button play, save, record;
     private final ParseUser currUser = ParseUser.getCurrentUser();
@@ -44,6 +42,7 @@ public class NewSoundActivity extends AppCompatActivity {
     private String filePath;
     private CountDownTimer cdt;
     private CircularProgressView cpv;
+    private MediaPlayer mp;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -122,10 +121,10 @@ public class NewSoundActivity extends AppCompatActivity {
     }
 
     public void onPlayClick(View v){
-        MediaPlayer mp = new MediaPlayer();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         if (!playing) {
+            mp = new MediaPlayer();
             record.setEnabled(false);
             save.setEnabled(false);
             play.setText("stop");
@@ -153,12 +152,14 @@ public class NewSoundActivity extends AppCompatActivity {
                 Utilities.makeToast(this, "Error Playing Audio.");
             }
         } else {
+            Log.e("AUD", "Sound currently playing");
             mp.stop();
             mp.release();
             mp = null;
             record.setEnabled(true);
             save.setEnabled(true);
             play.setText("play");
+            playing = false;
         }
     }
 
@@ -194,12 +195,6 @@ public class NewSoundActivity extends AppCompatActivity {
                                 l = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                             }
                             ParseGeoPoint pgp = new ParseGeoPoint(l.getLatitude(), l.getLongitude());
-                            ParseQuery<ParseObject> soundsThatNeedToBeDeleted = ParseQuery.getQuery("Sounds")
-                                    .whereWithinKilometers("location", pgp, Utilities.SOUNDS_DISTANCE_APART_KM);
-                            List<ParseObject> results = soundsThatNeedToBeDeleted.find();
-                            for (ParseObject po : results) {
-                                po.delete();
-                            }
                             File f = new File(soundFileLoc);
                             FileInputStream fis = new FileInputStream(f);
                             byte[] fArray = new byte[(int) f.length()];
@@ -209,6 +204,7 @@ public class NewSoundActivity extends AppCompatActivity {
                             pf.save();
                             ParseObject myObj = new ParseObject("Sounds");
                             myObj.put("location", pgp);
+                            myObj.put("user", tUser);
                             myObj.put("title", titleCopy);
                             myObj.put("file", pf);
                             myObj.save();

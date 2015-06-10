@@ -24,7 +24,6 @@ import com.parse.ParseUser;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
-
 public class SignupActivity extends AppCompatActivity {
     private EditText un,pw1,pw2;
     private Button su;
@@ -88,9 +87,9 @@ public class SignupActivity extends AppCompatActivity {
                             user.setUsername(cUsername);
                             user.setPassword(cPassword);
                             user.put("sounds", new ArrayList<ParseObject>());
+                            user.put("observable_sounds", new ArrayList<ParseObject>());
                             Bitmap picture = BitmapFactory.decodeResource(getResources(), R.drawable.def_profile);
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            picture.compress(Bitmap.CompressFormat.PNG, 100, baos);
                             final ParseFile file = new ParseFile("file.png", baos.toByteArray());
                             file.save();
                             user.put("profile_picture", file);
