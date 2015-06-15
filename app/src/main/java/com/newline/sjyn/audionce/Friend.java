@@ -3,6 +3,8 @@ package com.newline.sjyn.audionce;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.parse.GetDataCallback;
+import com.parse.ParseException;
 import com.parse.ParseUser;
 
 public class Friend implements Comparable<Friend> {
@@ -47,6 +49,10 @@ public class Friend implements Comparable<Friend> {
         img = bitmap;
     }
 
+    public Bitmap getImage(){
+        return img;
+    }
+
     public Bitmap getScaledBitmap(int w, int h){
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inSampleSize = Utilities.calculateInSampleSize(opts, w, h);
@@ -56,16 +62,23 @@ public class Friend implements Comparable<Friend> {
 
     public static Friend parseFriend(final ParseUser user){
         final String un = user.getUsername();
-        //TODO -- Fix the bitmap loading :(
+        Bitmap toImage = null;
         try {
-//            byte[] data = ((ParseFile) user.get("profile_picture")).getData();
-//            BitmapFactory.Options opts = new BitmapFactory.Options();
-//            opts.inSampleSize = Utilities.calculateInSampleSize(opts,75,75);
-//            Bitmap map = BitmapFactory.decodeByteArray(data,0,data.length,opts);
-            return new Friend(un,null,user);
-        } catch (Exception e){
+            byte[] array = user.getParseFile("profile_picture").getData();
+            toImage = BitmapFactory.decodeByteArray(array, 0, array.length);
+        } catch (Exception ex){
+            Utilities.makeLogFromThrowable(ex);
             return null;
         }
+        return new Friend(un,toImage,user);
+//        user.getParseFile("profile_picture").getDataInBackground(new GetDataCallback() {
+//            @Override
+//            public void done(byte[] bytes, ParseException e) {
+//                if(e == null){
+//                    toImage = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+//                }
+//            }
+//        });
     }
 
     @Override

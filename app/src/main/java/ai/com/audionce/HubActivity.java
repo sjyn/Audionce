@@ -21,6 +21,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
 import com.parse.FindCallback;
@@ -39,6 +40,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap tMap;
     private int i;
     private LatLng mLoc;
+    private ParseUser currUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,9 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
 //        View decorView = getWindow().getDecorView();
 //        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         setContentView(R.layout.activity_hub);
+        currUser = ParseUser.getCurrentUser();
+        Utilities.loadFriends(ParseUser.getCurrentUser());
+        ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_HUB);
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -72,6 +77,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     @Override
+    @SuppressWarnings({"unchecked"})
     public void onMapReady(GoogleMap map){
         tMap = map;
         tMap.setMyLocationEnabled(true);
@@ -106,8 +112,9 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                     LatLngBounds bnds = tMap.getProjection().getVisibleRegion().latLngBounds;
                     ParseGeoPoint sw = new ParseGeoPoint(bnds.southwest.latitude, bnds.southwest.longitude);
                     ParseGeoPoint ne = new ParseGeoPoint(bnds.northeast.latitude, bnds.northeast.longitude);
-                    ParseQuery<ParseObject> initialQ = ParseQuery.getQuery("Sounds");
-                    initialQ.whereWithinGeoBox("location", sw, ne);
+                    ParseQuery<ParseObject> initialQ = ParseQuery.getQuery("Sounds")
+                            .whereWithinGeoBox("location", sw, ne)
+                            .whereEqualTo("public", false);
                     initialQ.findInBackground(new FindCallback<ParseObject>() {
                         @Override
                         public void done(List<ParseObject> list, ParseException e) {
@@ -127,6 +134,20 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                             }
                         }
                     });
+                    try {
+                        ParseObject ss = currUser.getParseObject("shared_sounds").fetchIfNeeded();
+                        List<ParseObject> soundsSentToMe = (List<ParseObject>) ss.get("sounds");
+                        for (ParseObject po : soundsSentToMe) {
+                            po.fetchIfNeeded();
+                            ParseGeoPoint pgp = (ParseGeoPoint)po.get("location");
+                            LatLng gll = new LatLng(pgp.getLatitude(), pgp.getLongitude());
+                            tMap.addMarker(new MarkerOptions()
+                                    .position(gll)
+                                    .title(po.get("title").toString()));
+                        }
+                    } catch (Exception ex) {
+                        Utilities.makeLogFromThrowable(ex);
+                    }
                 }
             }
         });
@@ -172,7 +193,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void playSound(Sound s) throws IOException {
-        String tmpPath = getCacheDir().getPath() + "/halp.aac";
+//        String tmpPath = getCacheDir().getPath() + "/halp.aac";
         final MediaPlayer mp = new MediaPlayer();
         mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
         Log.e("AUD", s.getUrl());

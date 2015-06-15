@@ -9,21 +9,30 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import ai.com.audionce.SoundsPickupService;
+import ai.com.audionce.SoundsPickupService2;
 
 public class Utilities {
 
     public static final int SOUND_DURATION = 30000;
     public static final int SOUNDS_DISTANCE_AWAY_M = 50;
     public static final double SOUNDS_DISTANCE_AWAY_KM = SOUNDS_DISTANCE_AWAY_M / 1000.0;
-    public static final String LOGIN_ALWAYS_ENABLED_PATH =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) +
-                    "/audionce_prefs_do_not_delete.txt";
     public static final int FLAG_FROM_SERVICE_TO_HUB = 76654;
     public static final int SOUNDS_DISTANCE_APART_METERS = 20;
     public static final double SOUNDS_DISTANCE_APART_KM = SOUNDS_DISTANCE_APART_METERS / 1000.0;
     public static final int NOTIFICATION_ID = 9;
     public static Intent sps;
+    private static List<Friend> flist;
 
     public static int calculateInSampleSize(BitmapFactory.Options opts, int finW, int finH){
         int inSampleSize = 1;
@@ -37,12 +46,50 @@ public class Utilities {
         return inSampleSize;
     }
 
+    @SuppressWarnings("unchecked")
+    public static void loadFriends(ParseUser user){
+        flist = new ArrayList<>();
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("FriendTable")
+                .whereEqualTo("user",user);
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if( e == null ) {
+                    ParseObject po = list.get(0);
+                    for (ParseUser pu : (List<ParseUser>) po.get("all_friends")) {
+                        try {
+                            Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+                            f.setType("friends");
+                            flist.add(f);
+                        } catch (Exception ex){
+                            Utilities.makeLogFromThrowable(ex);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    public static List<Friend> getFriends(){
+        return flist;
+    }
+
+    public static void addFriend(Friend f){
+        flist.add(f);
+    }
+
+    public static void removeFriend(Friend f){
+        flist.remove(f);
+    }
+
     public static void startSoundPickupService(Context context) {
-        context.startService(sps == null ? sps = new Intent(context, SoundsPickupService.class) : sps);
+        context.startService(sps == null ? sps = new Intent(context, SoundsPickupService2.class) : sps);
     }
 
     public static void stopSoundPickupService(Context context) {
-        context.stopService(sps);
+        if(sps != null)
+            context.stopService(sps);
     }
 
     public static void makeLogFromThrowable(Throwable ex){
@@ -71,6 +118,27 @@ public class Utilities {
         USERNAME_ALREADY_EXISTS,
         ALL_OKAY,
         ERROR_THROWN
+    }
+
+    public static class InfoLoader{
+        private ParseUser parseUser;
+        private static InfoLoader instance = new InfoLoader();
+        private List<Friend> friends;
+        private List<Sound> mySounds, soundsSharedToMe;
+
+        private InfoLoader(){
+            friends = new ArrayList<>();
+            mySounds = soundsSharedToMe = new ArrayList<>();
+            parseUser = ParseUser.getCurrentUser();
+        }
+
+        public static InfoLoader getInfoLoaderInstance(){
+            return instance;
+        }
+
+        public void loadFriends(){
+
+        }
     }
 
 }

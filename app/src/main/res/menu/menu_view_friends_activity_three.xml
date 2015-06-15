@@ -13,6 +13,6 @@
 
     <item android:id="@+id/action_goto_pending"
         android:title="@string/pending"
-        android:icon="@drawable/ic_menu_grey_plus"
+        android:icon="@drawable/pending_friends_icon"
         app:showAsAction="ifRoom"/>
 </menu>

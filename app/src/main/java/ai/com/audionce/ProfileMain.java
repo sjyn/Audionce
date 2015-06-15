@@ -1,5 +1,6 @@
 package ai.com.audionce;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -29,6 +30,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
@@ -55,23 +57,25 @@ public class ProfileMain extends AppCompatActivity {
     private ParseUser currentUser;
     private ListView sounds;
     private ImageView profilePic;
-    private TextView username,friends,addSound, noSounds;
+    private TextView username;
+    private TextView friends;
+    private TextView noSounds;
     private final int CAMERA_CODE = 1650;
     private final int GALLERY_CODE = 1660;
     private final int CROP_CODE = 1770;
     private final String SAVE_PATH = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_PICTURES) + "/picture.png";
     private BitmapFactory.Options opts;
-    private static Dialog chooser,editor;
     private Adapters.ProfileSoundsAdapter adapter;
     private File f;
 
 
     @Override
-    @SuppressWarnings({"ignored", "unchecked"})
+    @SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored"})
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_main);
+        ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_PROFILE);
         f = new File(SAVE_PATH);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         if(!f.exists()){
@@ -85,7 +89,7 @@ public class ProfileMain extends AppCompatActivity {
         profilePic = (ImageView)findViewById(R.id.profile_picture_main);
         username = (TextView)findViewById(R.id.profile_username_main);
         friends = (TextView)findViewById(R.id.friends_text_main);
-        addSound = (TextView)findViewById(R.id.profile_add_text_main);
+        TextView addSound = (TextView) findViewById(R.id.profile_add_text_main);
         noSounds = (TextView)findViewById(R.id.no_sounds_text);
         noSounds.setVisibility(View.GONE);
         currentUser = ParseUser.getCurrentUser();
@@ -213,6 +217,7 @@ public class ProfileMain extends AppCompatActivity {
         return true;
     }
 
+    @SuppressLint("InflateParams")
     private void createAndDisplayUsernameEditor(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
@@ -249,7 +254,7 @@ public class ProfileMain extends AppCompatActivity {
                         }
                     }
                 });
-        editor = builder.create();
+        Dialog editor = builder.create();
         editor.show();
     }
 
@@ -291,7 +296,7 @@ public class ProfileMain extends AppCompatActivity {
                         }
                     }
                 });
-        chooser = builder.create();
+        Dialog chooser = builder.create();
         chooser.show();
     }
 
@@ -310,6 +315,9 @@ public class ProfileMain extends AppCompatActivity {
                 break;
             case R.id.goto_map:
                 startActivity(new Intent(this,HubActivity.class));
+                break;
+            case R.id.new_sound_from_hub:
+                startActivity(new Intent(this,NewSoundActivity.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -407,6 +415,7 @@ public class ProfileMain extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("Recycle")
     private String getPath(Uri uri) {
         if (uri == null) {
             return null;

@@ -1,5 +1,6 @@
 package ai.com.audionce;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -72,9 +73,16 @@ public class SignupActivity extends AppCompatActivity {
             if (!pwa.equals(pwb)) {
                 makeToast("Passwords do not match.");
             } else {
-                new AsyncTask<Void, Void, Utilities.SignupState>() {
+                new AsyncTask<Void, String, Utilities.SignupState>() {
                     private String cUsername = username;
                     private String cPassword = pwa;
+                    private ProgressDialog pd;
+
+                    @Override
+                    public void onPreExecute(){
+                        pd = ProgressDialog.show(SignupActivity.this,"Creating User...","");
+                        pd.show();
+                    }
 
                     @Override
                     public Utilities.SignupState doInBackground(Void... v) {
@@ -84,16 +92,25 @@ public class SignupActivity extends AppCompatActivity {
                             if (!doesUsernameExist.find().isEmpty())
                                 return Utilities.SignupState.USERNAME_ALREADY_EXISTS;
                             final ParseUser user = new ParseUser();
+                            publishProgress("Setting Username and Password...");
                             user.setUsername(cUsername);
                             user.setPassword(cPassword);
+                            publishProgress("Creating Your List of Sounds...");
                             user.put("sounds", new ArrayList<ParseObject>());
-                            user.put("observable_sounds", new ArrayList<ParseObject>());
+                            publishProgress("Creating Your Default Profile Picture...");
                             Bitmap picture = BitmapFactory.decodeResource(getResources(), R.drawable.def_profile);
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            final ParseFile file = new ParseFile("file.png", baos.toByteArray());
+                            picture.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                            final ParseFile file = new ParseFile("file", baos.toByteArray());
                             file.save();
                             user.put("profile_picture", file);
                             user.signUp();
+                            publishProgress("Finishing Up...");
+                            ParseObject sharedSounds = new ParseObject("SharedSounds");
+                            sharedSounds.put("sounds",new ArrayList<ParseObject>());
+                            sharedSounds.put("user",user);
+                            sharedSounds.save();
+                            user.put("shared_sounds",sharedSounds);
                             ParseObject ft = new ParseObject("FriendTable");
                             ft.put("user", user);
                             ft.put("all_friends", new ArrayList<ParseUser>());
@@ -108,7 +125,13 @@ public class SignupActivity extends AppCompatActivity {
                     }
 
                     @Override
+                    public void onProgressUpdate(String... s){
+                        pd.setMessage(s[0]);
+                    }
+
+                    @Override
                     public void onPostExecute(Utilities.SignupState state) {
+                        pd.dismiss();
                         switch (state) {
                             case USERNAME_ALREADY_EXISTS:
                                 makeToast("Username \"" + username + "\" is already taken.");

@@ -16,6 +16,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Friend;
 import com.newline.sjyn.audionce.Utilities;
@@ -36,6 +37,7 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_friends_activity_three);
+        ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_FRIENDS);
         fList = (ListView)findViewById(R.id.friends_list);
         friends = new ArrayList<>();
         noFriends = (TextView)findViewById(R.id.no_friends_view);
@@ -50,10 +52,6 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
                 return true;
             }
         });
-//        if(savedInstanceState == null) {
-//            Log.e("AUD","populating friends from onCreate");
-//            populateFriends();
-//        }
     }
 
     @Override
@@ -71,46 +69,13 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
     @SuppressWarnings("unchecked")
     private void populateFriends(){
         Log.e("AUD", "populateFriends called");
-        final ParseUser curr = ParseUser.getCurrentUser();
-        adapter = new Adapters.FriendAdapter(this,friends);
+        adapter = new Adapters.FriendAdapter(this,Utilities.getFriends());
         fList.setAdapter(adapter);
-        new AsyncTask<Void,Void,Boolean>(){
-            private ParseUser tu = curr;
-            private List<Friend> fCpy = new ArrayList<>();
-
-            @Override
-            public Boolean doInBackground(Void... v){
-                ParseObject ft = (ParseObject)tu.get("friends");
-                List<ParseUser> frnds = (List<ParseUser>)ft.get("all_friends");
-                if(frnds.isEmpty())
-                    return false;
-                for(ParseUser pu : frnds){
-                    try {
-                        Friend f = Friend.parseFriend(pu.fetchIfNeeded());
-                        f.setType("friends");
-                        fCpy.add(f);
-                    } catch (Exception ex){
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            @Override
-            public void onPostExecute(Boolean res){
-                if(res){
-                    friends.clear();
-                    friends.addAll(fCpy);
-                    if(friends.isEmpty()){
-                        noFriends.setVisibility(View.VISIBLE);
-                    } else {
-                        noFriends.setVisibility(View.GONE);
-                    }
-                    Log.e("AUD","Friends list size: " + friends.size());
-                    adapter.notifyDataSetChanged();
-                }
-            }
-        }.execute();
+        if(adapter.isEmpty()){
+            noFriends.setVisibility(View.VISIBLE);
+        } else {
+            noFriends.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -143,11 +108,6 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
         Toast.makeText(this,s,Toast.LENGTH_SHORT).show();
     }
 
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//                               DIALOGS
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    private static AlertDialog removeFriendDialog;
-
     private void displayRemoveFriendDialog(final Friend f){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Remove Friend")
@@ -165,7 +125,7 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
                     }
                 })
                 .setMessage("Are you sure you want to remove this friend from your list?");
-        removeFriendDialog = builder.create();
+        AlertDialog removeFriendDialog = builder.create();
         removeFriendDialog.show();
     }
 
@@ -200,6 +160,7 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
             }
         }
 
+        @SuppressWarnings({"unchecked"})
         private void removeMyFriend(ParseUser removeMe) throws Exception {
             ParseObject ft = ((ParseObject)tUser.get("friends")).fetchIfNeeded();
             List<ParseUser> tFriends = (List<ParseUser>)ft.get("all_friends");
@@ -207,6 +168,7 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
             ft.save();
         }
 
+        @SuppressWarnings({"unchecked"})
         private void removeTheirFriend(ParseUser removeFrom) throws Exception{
             ParseObject ft = ((ParseObject)removeFrom.get("friends")).fetchIfNeeded();
             List<ParseUser> tFriends = (List<ParseUser>)ft.get("all_friends");

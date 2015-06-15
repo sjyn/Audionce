@@ -58,7 +58,6 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
         Log.e("AUD", "Service starting");
         playQueue = new PrioritizedQueue<>();
         playingSound = null;
-
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 30, new SoundLocationListener());
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -207,7 +206,7 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                 0, toHub, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_notif_icon)
+                        .setSmallIcon(R.drawable.launcher)
                         .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.launcher))
                         .setContentTitle("Audionce")
                         .setContentText("Playing " + title)

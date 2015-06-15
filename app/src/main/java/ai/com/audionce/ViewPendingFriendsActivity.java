@@ -18,11 +18,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
+import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Friend;
 import com.newline.sjyn.audionce.Utilities;
-import com.parse.FindCallback;
-import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -33,22 +33,23 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-
 public class ViewPendingFriendsActivity extends AppCompatActivity {
     private ListView populateMe;
     private final ParseUser currUser = ParseUser.getCurrentUser();
     private Adapters.FriendAdapter adapter;
     private Adapters.FriendSearchAdapter sAdapter;
     private List<Friend> adaList, searchedFriends;
-    private SearchView sv;
-    private MenuItem search;
     private TextView noResultsFound;
+    private CircularProgressView cpv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_pending_friends);
+        ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_SEARCH);
         populateMe = (ListView)findViewById(R.id.pending_friends_list_view);
+        cpv = (CircularProgressView)findViewById(R.id.progress_view);
+        cpv.setVisibility(View.GONE);
         adaList = searchedFriends = new ArrayList<>();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         noResultsFound = (TextView)findViewById(R.id.no_results_found);
@@ -64,7 +65,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_view_pending_friends, menu);
         SearchManager manager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
-        search = menu.findItem(R.id.action_search);
+        MenuItem search = menu.findItem(R.id.action_search);
         MenuItemCompat.setOnActionExpandListener(search, new MenuItemCompat.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
@@ -81,7 +82,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                 return true;
             }
         });
-        sv = (SearchView) search.getActionView();
+        SearchView sv = (SearchView) search.getActionView();
         sv.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
         sv.setIconifiedByDefault(false);
         sv.setOnSearchClickListener(new View.OnClickListener() {
@@ -109,7 +110,6 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
     private void repopulatePending(){
         Log.e("AUD", "Repopulating pending");
         adaList.clear();
-//        adapter.notifyDataSetChanged();
         new AsyncTask<Void,Void,Boolean>(){
             private ParseUser tUser = currUser;
             private List<Friend> pend, reqs;
@@ -126,6 +126,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                     for(ParseObject po : q1Res){
                         ParseUser pu = po.getParseUser("to");
                         Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+                        assert f != null;
                         f.setType("pending");
                         pend.add(f);
                     }
@@ -133,6 +134,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                     for(ParseObject po : q2Res){
                         ParseUser pu = po.getParseUser("from");
                         Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+                        assert f != null;
                         f.setType("requested");
                         reqs.add(f);
                     }
@@ -149,7 +151,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                     Log.e("AUD", "repopulation okay");
                     Collections.sort(pend);
                     Collections.sort(reqs);
-                    Set<Friend> fset = new LinkedHashSet<Friend>();
+                    Set<Friend> fset = new LinkedHashSet<>();
                     adaList.addAll(reqs);
                     adaList.addAll(pend);
                     fset.addAll(adaList);
@@ -164,34 +166,59 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
         setNonSearchAdapterListViewSetting();
     }
 
-    private void runQuery(String q){
-        searchedFriends.clear();
-        ParseQuery<ParseUser> userResult = ParseQuery.getQuery(ParseUser.class);
-        userResult.whereContains("username",q)
-                  .whereContains("username",Character.toLowerCase(q.charAt(0)) + q.substring(1))
-                  .whereContains("username",Character.toUpperCase(q.charAt(0)) + q.substring(1))
-                  .whereNotEqualTo("username", currUser.getUsername());
-        userResult.findInBackground(new FindCallback<ParseUser>() {
+    private void runQuery(final String q){
+        new AsyncTask<Void,Void,Boolean>(){
+            private String qCpy = q;
+            private ParseUser puC = currUser;
+            private List<Friend> foundFriends;
+
             @Override
-            public void done(List<ParseUser> list, ParseException e) {
-                if (e == null && !list.isEmpty()) {
-                    noResultsFound.setVisibility(View.GONE);
-                    for (ParseUser pu : list) {
-                        Friend f = Friend.parseFriend(pu);
+            public void onPreExecute(){
+                noResultsFound.setVisibility(View.GONE);
+                cpv.setVisibility(View.VISIBLE);
+                cpv.startAnimation();
+                searchedFriends.clear();
+                foundFriends = new ArrayList<>();
+            }
+
+            @Override
+            public Boolean doInBackground(Void... v){
+                ParseQuery<ParseUser> userResult = ParseQuery.getQuery(ParseUser.class);
+                userResult.whereContains("username",qCpy)
+                        .whereContains("username",Character.toLowerCase(qCpy.charAt(0)) + qCpy.substring(1))
+                        .whereContains("username",Character.toUpperCase(qCpy.charAt(0)) + qCpy.substring(1))
+                        .whereNotEqualTo("username", puC.getUsername());
+                try {
+                    List<ParseUser> results = userResult.find();
+                    for(ParseUser pu : results){
+                        Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+                        assert f != null;
                         f.setType("add");
-                        searchedFriends.add(f);
+                        foundFriends.add(f);
                     }
-                    sAdapter = new Adapters.FriendSearchAdapter(getApplicationContext(), searchedFriends);
-                    populateMe.setAdapter(sAdapter);
-                    setSearchAdapterListViewSettings();
-                } else {
-                    if(e != null){
-                        Utilities.makeLogFromThrowable(e);
+                } catch (Exception ex){
+                    Utilities.makeLogFromThrowable(ex);
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public void onPostExecute(Boolean res){
+                cpv.setVisibility(View.GONE);
+                if(res){
+                    if(!foundFriends.isEmpty()){
+                        noResultsFound.setVisibility(View.GONE);
+                        searchedFriends.addAll(foundFriends);
+                        sAdapter = new Adapters.FriendSearchAdapter(getApplicationContext(), searchedFriends);
+                        populateMe.setAdapter(sAdapter);
+                        setSearchAdapterListViewSettings();
+                    } else {
+                        noResultsFound.setVisibility(View.VISIBLE);
                     }
-                    noResultsFound.setVisibility(View.VISIBLE);
                 }
             }
-        });
+        }.execute();
     }
 
     private void setNonSearchAdapterListViewSetting(){
@@ -233,6 +260,10 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                                 obj.add("all_friends", addMe);
                                 obj.save();
                                 tUser.save();
+                                Friend f = Friend.parseFriend(addMe);
+                                assert f != null;
+                                f.setType("friends");
+                                Utilities.addFriend(f);
                             }
 
                             private void setTheirFriends(ParseUser changeMe) throws Exception {
@@ -271,6 +302,7 @@ public class ViewPendingFriendsActivity extends AppCompatActivity {
                     }
 
                     @Override
+                    @SuppressWarnings({"unchecked"})
                     public Boolean doInBackground(Void... params) {
                         ParseObject mFriendTable = tUser.getParseObject("friends");
                         List<ParseUser> mFriend = (List<ParseUser>)mFriendTable.get("all_friends");

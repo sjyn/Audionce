@@ -18,7 +18,7 @@
     <string name="already_account">Already have an account? Log in.</string>
     <string name="no_sounds">No Sounds To Display</string>
     <string name="remove">(remove)</string>
-    <string name="title_activity_new_sound">Create A Sound</string>
+    <string name="title_activity_new_sound">New Sound</string>
     <string name="edit_title">Edit Name</string>
     <string name="edit_name_hint">Enter new name</string>
     <string name="search_title">Search</string>
@@ -36,8 +36,8 @@
     <string name="copyright">Copyright &#169; 2015 Alicia Iott. All rights reserved.</string>
     <string name="enable_location_text">
         Audionce needs to access you location in order to work properly. If you choose to enable
-        your location, you will be taken to your default location settings, where you can choose
-        to enable your location.
+        your location, you will be taken to your default location settings, and will have to
+        navigate back to this app.
     </string>
     <string name="title_activity_camera">CameraActivity</string>
     <string name="new_sound_title_hint">Title</string>
