@@ -32,20 +32,19 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
     private List<Friend> friends;
     private Adapters.FriendAdapter adapter;
     private TextView noFriends;
-    private Utilities.InfoLoader loader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_friends_activity_three);
-        loader = Utilities.InfoLoader.getInfoLoaderInstance();
         ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_FRIENDS);
         fList = (ListView)findViewById(R.id.friends_list);
         friends = new ArrayList<>();
         noFriends = (TextView)findViewById(R.id.no_friends_view);
+        noFriends.setVisibility(View.GONE);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         noFriends.setText("You haven't added any friends yet.\nYou can add" +
-                " friends by searching above.");
+            " friends by searching above.");
         fList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -53,9 +52,6 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
                 return true;
             }
         });
-        adapter = new Adapters.FriendAdapter(this, loader.getFriendsList());
-        noFriends.setVisibility(adapter.isEmpty() ? View.GONE : View.VISIBLE);
-        fList.setAdapter(adapter);
     }
 
     @Override
@@ -66,21 +62,21 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
     @Override
     public void onResume(){
         super.onResume();
-//        Log.e("AUD", "populating friends from onResume");
-//        populateFriends();
+        Log.e("AUD", "populating friends from onResume");
+        populateFriends();
     }
 
-//    @SuppressWarnings("unchecked")
-//    private void populateFriends(){
-//        Log.e("AUD", "populateFriends called");
-//        adapter = new Adapters.FriendAdapter(this,Utilities.getFriends());
-//        fList.setAdapter(adapter);
-//        if(adapter.isEmpty()){
-//            noFriends.setVisibility(View.VISIBLE);
-//        } else {
-//            noFriends.setVisibility(View.GONE);
-//        }
-//    }
+    @SuppressWarnings("unchecked")
+    private void populateFriends(){
+        Log.e("AUD", "populateFriends called");
+        adapter = new Adapters.FriendAdapter(this,Utilities.getFriends());
+        fList.setAdapter(adapter);
+        if(adapter.isEmpty()){
+            noFriends.setVisibility(View.VISIBLE);
+        } else {
+            noFriends.setVisibility(View.GONE);
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

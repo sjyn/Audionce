@@ -33,7 +33,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-//TODO -- integrate the loader class into this :(
 public class ViewPendingFriendsActivity extends AppCompatActivity {
     private ListView populateMe;
     private final ParseUser currUser = ParseUser.getCurrentUser();

@@ -32,23 +32,27 @@ import android.widget.Toast;
 
 import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Adapters;
+import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
+import com.parse.FindCallback;
 import com.parse.GetDataCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 //TODO -- Circular profile picture views?
 //TODO -- default pic doesn't dl correctly
 //TODO -- Play and pause sounds on profile page
 //TODO -- fix URI from gallery
-//TODO -- delete sounds
-//TODO -- show sounds that are shared to you
 public class ProfileMain extends AppCompatActivity {
     private ParseUser currentUser;
     private ListView sounds;
@@ -64,7 +68,7 @@ public class ProfileMain extends AppCompatActivity {
     private BitmapFactory.Options opts;
     private Adapters.ProfileSoundsAdapter adapter;
     private File f;
-    private Utilities.InfoLoader loader;
+
 
     @Override
     @SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored"})
@@ -74,7 +78,6 @@ public class ProfileMain extends AppCompatActivity {
         ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_PROFILE);
         f = new File(SAVE_PATH);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        loader = Utilities.InfoLoader.getInfoLoaderInstance();
         if(!f.exists()){
             try {
                 f.createNewFile();
@@ -88,7 +91,7 @@ public class ProfileMain extends AppCompatActivity {
         friends = (TextView)findViewById(R.id.friends_text_main);
         TextView addSound = (TextView) findViewById(R.id.profile_add_text_main);
         noSounds = (TextView)findViewById(R.id.no_sounds_text);
-//        noSounds.setVisibility(View.GONE);
+        noSounds.setVisibility(View.GONE);
         currentUser = ParseUser.getCurrentUser();
         opts = new BitmapFactory.Options();
         opts.inSampleSize = Utilities.calculateInSampleSize
@@ -109,7 +112,7 @@ public class ProfileMain extends AppCompatActivity {
             }
         });
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        friends.setText("Friends (" + loader.getFriendsList().size() + ")");
+        friends.setText("Friends (" + sp.getInt("num_friends", 0) + ")");
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -135,79 +138,77 @@ public class ProfileMain extends AppCompatActivity {
                 createAndDisplayUsernameEditor();
             }
         });
-        adapter = new Adapters.ProfileSoundsAdapter(this, loader.getMySounds());
-        noSounds.setVisibility(adapter.isEmpty() ? View.GONE : View.VISIBLE);
-        sounds.setAdapter(adapter);
+        loadSounds();
     }
 
-//    private void loadSounds(){
-//        new AsyncTask<Void,Void,Boolean>(){
-//            private ParseUser tUser;
-//            private List<Sound> fSounds;
-//
-//            @Override
-//            public void onPreExecute(){
-//                tUser = currentUser;
-//                fSounds = new ArrayList<>();
-//            }
-//
-//            @Override
-//            @SuppressWarnings("unchecked")
-//            public Boolean doInBackground(Void... c){
-//                List<ParseObject> uSounds = (List<ParseObject>)tUser.get("sounds");
-//                if (uSounds.isEmpty())
-//                    return false;
-//                for(ParseObject po : uSounds){
-//                    try {
-//                        fSounds.add(Sound.parseSound(po.fetchIfNeeded()));
-//                    } catch (Exception ex){
-//                        Log.e("AUD",Log.getStackTraceString(ex));
-//                        return false;
-//                    }
-//                }
-//                return true;
-//            }
-//
-//            @Override
-//            public void onPostExecute(Boolean res){
-//                if(res){
-//                    adapter = new Adapters.ProfileSoundsAdapter(getApplicationContext(),fSounds);
-//                    sounds.setAdapter(adapter);
-//                    adapter.notifyDataSetChanged();
-//                    noSounds.setVisibility(View.GONE);
-//                } else {
-//                    noSounds.setVisibility(View.VISIBLE);
-//                }
-//            }
-//        }.execute();
-//    }
+    private void loadSounds(){
+        new AsyncTask<Void,Void,Boolean>(){
+            private ParseUser tUser;
+            private List<Sound> fSounds;
+
+            @Override
+            public void onPreExecute(){
+                tUser = currentUser;
+                fSounds = new ArrayList<>();
+            }
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public Boolean doInBackground(Void... c){
+                List<ParseObject> uSounds = (List<ParseObject>)tUser.get("sounds");
+                if (uSounds.isEmpty())
+                    return false;
+                for(ParseObject po : uSounds){
+                    try {
+                        fSounds.add(Sound.parseSound(po.fetchIfNeeded()));
+                    } catch (Exception ex){
+                        Log.e("AUD",Log.getStackTraceString(ex));
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            @Override
+            public void onPostExecute(Boolean res){
+                if(res){
+                    adapter = new Adapters.ProfileSoundsAdapter(getApplicationContext(),fSounds);
+                    sounds.setAdapter(adapter);
+                    adapter.notifyDataSetChanged();
+                    noSounds.setVisibility(View.GONE);
+                } else {
+                    noSounds.setVisibility(View.VISIBLE);
+                }
+            }
+        }.execute();
+    }
 
     @Override
     @SuppressWarnings("unchecked")
     public void onResume(){
         super.onResume();
-//        ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
-//        fQue.whereEqualTo("user",currentUser);
-//        fQue.findInBackground(new FindCallback<ParseObject>() {
-//            @Override
-//            public void done(List<ParseObject> list, ParseException e) {
-//                if (e == null) {
-//                    ParseObject lst = list.get(0);
-//                    List<ParseUser> fnds = (List<ParseUser>) lst.get("all_friends");
-//                    friends.setText("Friends (" + fnds.size() + ")");
-//                } else {
-//                    Log.e("AUD", Log.getStackTraceString(e));
-//                }
-//            }
-//        });
-//        profilePic.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Log.e("AUD", "profile picture pressed");
-//                createAndDisplayChooser();
-//            }
-//        });
-//        loadSounds();
+        ParseQuery<ParseObject> fQue = ParseQuery.getQuery("FriendTable");
+        fQue.whereEqualTo("user",currentUser);
+        fQue.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null) {
+                    ParseObject lst = list.get(0);
+                    List<ParseUser> fnds = (List<ParseUser>) lst.get("all_friends");
+                    friends.setText("Friends (" + fnds.size() + ")");
+                } else {
+                    Log.e("AUD", Log.getStackTraceString(e));
+                }
+            }
+        });
+        profilePic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("AUD", "profile picture pressed");
+                createAndDisplayChooser();
+            }
+        });
+        loadSounds();
     }
 
     @Override

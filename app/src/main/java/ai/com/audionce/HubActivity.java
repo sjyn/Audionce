@@ -41,7 +41,6 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     private int i;
     private LatLng mLoc;
     private ParseUser currUser;
-//    private Utilities.InfoLoader loader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +48,8 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
 //        View decorView = getWindow().getDecorView();
 //        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         setContentView(R.layout.activity_hub);
-//        currUser = ParseUser.getCurrentUser();
-//        Utilities.loadFriends(ParseUser.getCurrentUser());
-//        loader = Utilities.InfoLoader.getInfoLoaderInstance();
+        currUser = ParseUser.getCurrentUser();
+        Utilities.loadFriends(ParseUser.getCurrentUser());
         ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_HUB);
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
