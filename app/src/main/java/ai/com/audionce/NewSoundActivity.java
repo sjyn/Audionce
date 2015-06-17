@@ -26,10 +26,10 @@ import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Friend;
+import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
-import com.parse.Parse;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
@@ -69,7 +69,7 @@ public class NewSoundActivity extends AppCompatActivity {
         cpv = (CircularProgressView) findViewById(R.id.progress_view);
         friendsToShareWith = (ListView)findViewById(R.id.friends_to_share_with);
         friendsToShareWith.setAdapter(adapter = new Adapters.ShareWithFriendsAdapter
-                (this, Utilities.getFriends()));
+                (this, Utilities.InfoLoader.getInfoLoaderInstance().getFriendsList()));
         filePath = getCacheDir().getPath() + "/tmp_mus.aac";
         saved = pub = false;
         play.setEnabled(false);
@@ -258,6 +258,7 @@ public class NewSoundActivity extends AppCompatActivity {
                                     }
                                 }
                                 tUser.add("sounds", myObj);
+                                Utilities.InfoLoader.getInfoLoaderInstance().addSound(Sound.parseSound(myObj));
                                 tUser.save();
                             } catch (Exception ex) {
                                 Utilities.makeLogFromThrowable(ex);

@@ -20,11 +20,6 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.newline.sjyn.audionce.Utilities;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
-import com.parse.ParseUser;
-
-import java.util.List;
 
 
 public class AudionceSplash extends AppCompatActivity {
@@ -83,12 +78,11 @@ public class AudionceSplash extends AppCompatActivity {
                 @SuppressWarnings("unchecked")
                 public Boolean doInBackground(Void... v) {
                     try {
-                        ParseUser.logIn(unc, pwc);
-                        ParseQuery<ParseObject> gFriend = ParseQuery.getQuery("FriendTable")
-                                .whereEqualTo("user", ParseUser.getCurrentUser());
-                        List<ParseObject> resA = gFriend.find();
-                        List<ParseUser> mFriends = (List<ParseUser>) resA.get(0).get("all_friends");
-                        spc.edit().putInt("num_friends", mFriends.size()).commit();
+                        Utilities.InfoLoader loader = Utilities.InfoLoader.getInfoLoaderInstance();
+                        loader.loadFriends();
+                        loader.loadSounds();
+                        loader.loadPendingAndRequested();
+                        spc.edit().putInt("num_friends", loader.getFriendsList().size()).commit();
                     } catch (Exception ex) {
                         Utilities.makeLogFromThrowable(ex);
                         return false;
