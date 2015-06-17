@@ -5,12 +5,10 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
-import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -19,7 +17,6 @@ import com.parse.ParseUser;
 import java.util.ArrayList;
 import java.util.List;
 
-import ai.com.audionce.SoundsPickupService;
 import ai.com.audionce.SoundsPickupService2;
 
 public class Utilities {
@@ -119,26 +116,4 @@ public class Utilities {
         ALL_OKAY,
         ERROR_THROWN
     }
-
-    public static class InfoLoader{
-        private ParseUser parseUser;
-        private static InfoLoader instance = new InfoLoader();
-        private List<Friend> friends;
-        private List<Sound> mySounds, soundsSharedToMe;
-
-        private InfoLoader(){
-            friends = new ArrayList<>();
-            mySounds = soundsSharedToMe = new ArrayList<>();
-            parseUser = ParseUser.getCurrentUser();
-        }
-
-        public static InfoLoader getInfoLoaderInstance(){
-            return instance;
-        }
-
-        public void loadFriends(){
-
-        }
-    }
-
 }
