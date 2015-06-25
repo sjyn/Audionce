@@ -19,7 +19,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Sound;
@@ -81,30 +80,32 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap map){
         tMap = map;
         tMap.setMyLocationEnabled(true);
-        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                LatLng markerLoc = marker.getPosition();
-                Location mark = new Location("");
-                mark.setLongitude(markerLoc.longitude);
-                mark.setLatitude(markerLoc.latitude);
-                ParseQuery<ParseObject> gSound = ParseQuery.getQuery("Sounds");
-                gSound.whereEqualTo("location",
-                        new ParseGeoPoint(mark.getLatitude(), mark.getLongitude()));
-                gSound.findInBackground(new FindCallback<ParseObject>() {
-                    @Override
-                    public void done(List<ParseObject> list, ParseException e) {
-                        Sound s = Sound.parseSound(list.get(0));
-                        try {
-                            playSound(s);
-                        } catch (Exception ex) {
-                            Utilities.makeLogFromThrowable(ex);
-                        }
-                    }
-                });
-                return false;
-            }
-        });
+        //-=-=-=-=-=-=-=-=-=-=-FOR DEBUG ONLY-=-=-=-=-=-=-=-=-=-=-=//
+//        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+//            @Override
+//            public boolean onMarkerClick(Marker marker) {
+//                LatLng markerLoc = marker.getPosition();
+//                Location mark = new Location("");
+//                mark.setLongitude(markerLoc.longitude);
+//                mark.setLatitude(markerLoc.latitude);
+//                ParseQuery<ParseObject> gSound = ParseQuery.getQuery("Sounds");
+//                gSound.whereEqualTo("location",
+//                        new ParseGeoPoint(mark.getLatitude(), mark.getLongitude()));
+//                gSound.findInBackground(new FindCallback<ParseObject>() {
+//                    @Override
+//                    public void done(List<ParseObject> list, ParseException e) {
+//                        Sound s = Sound.parseSound(list.get(0));
+//                        try {
+//                            playSound(s);
+//                        } catch (Exception ex) {
+//                            Utilities.makeLogFromThrowable(ex);
+//                        }
+//                    }
+//                });
+//                return false;
+//            }
+//        });
+        //-=-=-=-=-=-=-=-=-=-=-END DEBUG ONLY-=-=-=-=-=-=-=-=-=-=-=//
         tMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
@@ -114,7 +115,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                     ParseGeoPoint ne = new ParseGeoPoint(bnds.northeast.latitude, bnds.northeast.longitude);
                     ParseQuery<ParseObject> initialQ = ParseQuery.getQuery("Sounds")
                             .whereWithinGeoBox("location", sw, ne)
-                            .whereEqualTo("public", false);
+                            .whereEqualTo("is_private", false);
                     initialQ.findInBackground(new FindCallback<ParseObject>() {
                         @Override
                         public void done(List<ParseObject> list, ParseException e) {

@@ -78,7 +78,12 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                         Utilities.makeLogFromThrowable(ex);
                     }
                 } else {
-                    tPlayer.start();
+                    try {
+                        tPlayer.start();
+                    } catch (Exception ex) {
+                        Utilities.makeLogFromThrowable(ex);
+                        tPlayer = null;
+                    }
                 }
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
@@ -97,8 +102,13 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 if (tPlayer != null) {
-                    if (tPlayer.isPlaying())
-                        tPlayer.pause();
+                    try {
+                        if (tPlayer.isPlaying())
+                            tPlayer.pause();
+                    } catch (Exception ignored) {
+                        Utilities.makeLogFromThrowable(ignored);
+                        tPlayer = null;
+                    }
                 }
                 break;
         }

@@ -1,13 +1,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     tools:context="ai.com.audionce.ProfileMain"
     android:background="@color/white">
 
-    <ImageView
+    <com.pkmmte.view.CircularImageView
         android:layout_width="130dp"
         android:layout_height="130dp"
         android:id="@+id/profile_picture_main"
@@ -17,10 +15,10 @@
 
     <ListView
         android:layout_width="fill_parent"
-        android:layout_marginTop="12dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/profile_picture_main"
-        android:id="@+id/sounds_list_view">
+        android:layout_height="300dp"
+        android:id="@+id/sounds_list_view"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true">
     </ListView>
 
     <TextView
@@ -62,8 +60,19 @@
         android:layout_height="wrap_content"
         android:text="@string/no_sounds"
         android:id="@+id/no_sounds_text"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="161dp" />
 
+    <!--<com.kyleduo.switchbutton.SwitchButton-->
+    <!--android:id="@+id/sb_ios"-->
+    <!--style="@style/SwitchButtonStyle"-->
+    <!--app:animationVelocity="8"-->
+    <!--app:onColor="@color/ab_pink"-->
+    <!--app:offColor="@color/progress_blue"-->
+    <!--android:layout_width="fill_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_below="@+id/profile_picture_main"-->
+    <!--android:layout_alignStart="@+id/profile_picture_main" />-->
 
 </RelativeLayout>

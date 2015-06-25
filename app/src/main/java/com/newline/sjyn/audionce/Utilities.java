@@ -17,7 +17,7 @@ import com.parse.ParseUser;
 import java.util.ArrayList;
 import java.util.List;
 
-import ai.com.audionce.SoundsPickupService2;
+import ai.com.audionce.SoundsPickupService;
 
 public class Utilities {
 
@@ -81,7 +81,7 @@ public class Utilities {
     }
 
     public static void startSoundPickupService(Context context) {
-        context.startService(sps == null ? sps = new Intent(context, SoundsPickupService2.class) : sps);
+        context.startService(sps == null ? sps = new Intent(context, SoundsPickupService.class) : sps);
     }
 
     public static void stopSoundPickupService(Context context) {

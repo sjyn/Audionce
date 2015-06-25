@@ -29,7 +29,7 @@ import com.newline.sjyn.audionce.Friend;
 import com.newline.sjyn.audionce.Utilities;
 import com.nispok.snackbar.Snackbar;
 import com.nispok.snackbar.SnackbarManager;
-import com.parse.Parse;
+import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
@@ -38,6 +38,7 @@ import com.parse.ParseUser;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NewSoundActivity extends AppCompatActivity {
@@ -79,10 +80,10 @@ public class NewSoundActivity extends AppCompatActivity {
     public static void notifyTextView(boolean empty){
         Log.e("AUD", "notifyTextView() called");
         if(empty){
-            Log.e("AUD","Setting text to \"public\"");
+            Log.e("AUD", "Setting text to \"public\"");
             publicOrPrivate.setText("public");
         } else {
-            Log.e("AUD","Setting text to \"private\"");
+            Log.e("AUD", "Setting text to \"private\"");
             publicOrPrivate.setText("private");
         }
     }
@@ -124,7 +125,7 @@ public class NewSoundActivity extends AppCompatActivity {
             mr.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
             Log.e("AUD", filePath);
             mr.setOutputFile(filePath);
-            mr.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+            mr.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             mr.setMaxDuration(Utilities.SOUND_DURATION);
             try {
                 mr.prepare();
@@ -218,7 +219,7 @@ public class NewSoundActivity extends AppCompatActivity {
                             shareToTheseFriends = adapter.getSelectedFriends();
                             tUser = currUser;
                             manager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                            pubT = pub;
+                            pubT = publicOrPrivate.getText().equals("public");
                         }
 
                         @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -230,12 +231,14 @@ public class NewSoundActivity extends AppCompatActivity {
                                     l = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                                 }
                                 ParseGeoPoint pgp = new ParseGeoPoint(l.getLatitude(), l.getLongitude());
+                                deleteSoundsNearMe(pgp);
                                 File f = new File(soundFileLoc);
+                                Log.e("AUD", soundFileLoc);
                                 FileInputStream fis = new FileInputStream(f);
                                 byte[] fArray = new byte[(int) f.length()];
                                 fis.read(fArray);
                                 fis.close();
-                                ParseFile pf = new ParseFile((long) (Math.random() * Long.MAX_VALUE) + ".acc", fArray);
+                                ParseFile pf = new ParseFile("sound.aac", fArray);
                                 pf.save();
                                 ParseObject myObj = new ParseObject("Sounds");
                                 myObj.put("location", pgp);
@@ -246,7 +249,12 @@ public class NewSoundActivity extends AppCompatActivity {
                                     myObj.put("is_private",false);
                                     myObj.save();
                                 } else {
-                                    myObj.put("is_private",true);
+                                    myObj.put("is_private", true);
+                                    ArrayList<ParseUser> to = new ArrayList<>();
+                                    for (Friend friToAdd : shareToTheseFriends) {
+                                        to.add(friToAdd.getParseUser());
+                                    }
+                                    myObj.put("to", to);
                                     myObj.save();
                                     for(Friend friend : shareToTheseFriends){
                                         ParseUser pu = friend.getParseUser().fetchIfNeeded();
@@ -277,6 +285,15 @@ public class NewSoundActivity extends AppCompatActivity {
                             record.setEnabled(true);
                             save.setText("save");
                             save.setEnabled(true);
+                        }
+
+                        private void deleteSoundsNearMe(ParseGeoPoint cp) throws ParseException {
+                            List<ParseObject> pobjs = ParseQuery.getQuery("Sounds")
+                                    .whereWithinKilometers("location", cp, Utilities.SOUNDS_DISTANCE_APART_KM)
+                                    .find();
+                            for (ParseObject po : pobjs) {
+                                po.delete();
+                            }
                         }
                     }.execute();
 

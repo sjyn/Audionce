@@ -36,7 +36,6 @@ import java.util.List;
 
 //TODO -- Hide status bar on all camera updates
 //TODO -- disable buttons on save
-//TODO -- provide cancel button
 @SuppressWarnings({"deprecation"})
 public class CameraActivity extends AppCompatActivity {
     private Camera camera;
@@ -44,7 +43,7 @@ public class CameraActivity extends AppCompatActivity {
     private final String SAVE_PATH = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_PICTURES) + "/picture.png";
     private boolean cameraFacingFront = false;
-    private ImageButton switchView, resView;
+    private ImageButton switchView, resView, qui;
     private Button save, capture;
     private CircularProgressView cpv;
 
@@ -62,6 +61,7 @@ public class CameraActivity extends AppCompatActivity {
         }
         switchView = (ImageButton) findViewById(R.id.imageButton);
         resView = (ImageButton) findViewById(R.id.imageButton2);
+        qui = (ImageButton) findViewById(R.id.cancel_button);
         save = (Button) findViewById(R.id.save_button);
         capture = (Button) findViewById(R.id.capture_button);
         cpv = (CircularProgressView) findViewById(R.id.progress_view);
@@ -83,6 +83,7 @@ public class CameraActivity extends AppCompatActivity {
         fl.addView(cPre);
         fl.addView(switchView);
         fl.addView(resView);
+        fl.addView(qui);
     }
 
     public void onSavePressed(View v) {
@@ -249,6 +250,11 @@ public class CameraActivity extends AppCompatActivity {
                     }
                 });
         builder.create().show();
+    }
+
+    public void onCancelClick(View v) {
+        setResult(RESULT_CANCELED, new Intent());
+        finish();
     }
 
     @Override

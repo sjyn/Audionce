@@ -1,9 +1,11 @@
 package com.newline.sjyn.audionce;
 
+import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.BitmapFactory;
+import android.content.DialogInterface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,15 +14,9 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.parse.GetDataCallback;
-import com.parse.Parse;
-import com.parse.ParseException;
-import com.parse.ParseFile;
-
-import org.w3c.dom.Text;
+import com.pkmmte.view.CircularImageView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +27,6 @@ import java.util.Map;
 import ai.com.audionce.NewSoundActivity;
 import ai.com.audionce.R;
 
-//TODO -- Fix image loading
 public final class Adapters {
 
     public static class ShareWithFriendsAdapter extends  ArrayAdapter<Friend> {
@@ -41,7 +36,7 @@ public final class Adapters {
         private static class Holder{
             TextView name;
             CheckBox shareWith;
-            ImageView image;
+            CircularImageView image;
         }
 
         public ShareWithFriendsAdapter(Context c, List<Friend> list){
@@ -61,7 +56,7 @@ public final class Adapters {
                 Holder h = new Holder();
                 h.name = (TextView)cv.findViewById(R.id.name);
                 h.shareWith = (CheckBox)cv.findViewById(R.id.check_box);
-                h.image = (ImageView)cv.findViewById(R.id.picture);
+                h.image = (CircularImageView) cv.findViewById(R.id.picture);
                 cv.setTag(h);
             }
             final Holder holder = (Holder)cv.getTag();
@@ -83,14 +78,6 @@ public final class Adapters {
                 }
             });
             Friend f = list.get(pos);
-//            ParseFile pf = (ParseFile)f.getParseUser().get("profile_picture");
-//            pf.getDataInBackground(new GetDataCallback() {
-//                @Override
-//                public void done(byte[] bytes, ParseException e) {
-//                    holder.image.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
-//                }
-//            });
-//            holder.image.setImageDrawable(getContext().getResources().getDrawable(R.drawable.def_profile));
             holder.image.setImageBitmap(f.getImage());
             holder.name.setText(f.getUsername());
             if(isFriendChecked(f))
@@ -128,7 +115,7 @@ public final class Adapters {
         private static class Holder{
             TextView name;
             TextView status;
-            ImageView image;
+            CircularImageView image;
         }
 
         public FriendAdapter(Context c, List<Friend> list){
@@ -143,28 +130,15 @@ public final class Adapters {
                 cv = inflater.inflate(R.layout.friend_list_item,parent,false);
                 Holder h = new Holder();
                 h.name = (TextView)cv.findViewById(R.id.friend_name);
-                h.image = (ImageView)cv.findViewById(R.id.friend_picture);
+                h.image = (CircularImageView) cv.findViewById(R.id.friend_picture);
                 h.status = (TextView)cv.findViewById(R.id.remove_friend);
                 cv.setTag(h);
             }
             final Holder holder = (Holder)cv.getTag();
             Friend f = list.get(pos);
             holder.image.setImageBitmap(f.getImage());
-//            ParseFile pf = f.getParseUser().getParseFile("profile_picture");
-//            pf.getDataInBackground(new GetDataCallback() {
-//                @Override
-//                public void done(byte[] bytes, ParseException e) {
-//                    if(e == null){
-//                        holder.image.setImageBitmap(BitmapFactory.decodeByteArray(bytes,0,bytes.length));
-//                    }
-//                }
-//            });
-//            final int w = holder.image.getWidth();
-//            final int h = holder.image.getHeight();
             holder.status.setText("(" + f.getType() + ")");
             holder.name.setText(f.getUsername());
-//            holder.image.setImageBitmap(f.getScaledBitmap(w,h));
-//            holder.image.setImageDrawable(getContext().getResources().getDrawable(R.drawable.def_profile));
             return cv;
         }
     }
@@ -174,7 +148,7 @@ public final class Adapters {
 
         private static class Holder{
             TextView tv;
-            ImageView iv;
+            CircularImageView iv;
         }
 
         public FriendSearchAdapter(Context c, List<Friend> res){
@@ -189,22 +163,13 @@ public final class Adapters {
                 cv = inflater.inflate(R.layout.friend_search_item,parent,false);
                 Holder h = new Holder();
                 h.tv = (TextView)cv.findViewById(R.id.friend_search_name);
-                h.iv = (ImageView)cv.findViewById(R.id.friend_search_picture);
+                h.iv = (CircularImageView) cv.findViewById(R.id.friend_search_picture);
                 cv.setTag(h);
             }
             final Holder holder = (Holder)cv.getTag();
             Friend f = searches.get(pos);
             holder.tv.setText(f.getUsername());
             holder.iv.setImageBitmap(f.getImage());
-//            ParseFile pf = f.getParseUser().getParseFile("profile_picture");
-//            pf.getDataInBackground(new GetDataCallback() {
-//                @Override
-//                public void done(byte[] bytes, ParseException e) {
-//                    holder.iv.setImageBitmap(BitmapFactory.decodeByteArray(bytes,0,bytes.length));
-//                }
-//            });
-//            holder.iv.setImageBitmap(f.getScaledBitmap(holder.iv.getWidth(),holder.iv.getHeight()));
-//            holder.iv.setImageDrawable(getContext().getResources().getDrawable(R.drawable.def_profile));
             return cv;
         }
     }
@@ -224,6 +189,7 @@ public final class Adapters {
         private static class Holder{
             TextView tv;
             ImageButton button;
+            TextView pop;
         }
 
         @Override
@@ -234,18 +200,21 @@ public final class Adapters {
                 Holder h = new Holder();
                 h.tv = (TextView)cv.findViewById(R.id.sound_title);
                 h.button = (ImageButton)cv.findViewById(R.id.play_sound_button);
+                h.pop = (TextView) cv.findViewById(R.id.pub_or_priv);
                 cv.setTag(h);
             }
             Log.e("AUD", "Sound getView called");
             Holder holder = (Holder)cv.getTag();
             holder.tv.setText(sounds.get(pos).getTitle());
+            holder.pop.setText("");
             final int tPos = pos;
-            holder.button.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    return false;
-                }
-            });
+//            holder.button.setOnLongClickListener(new View.OnLongClickListener() {
+//                @Override
+//                public boolean onLongClick(View v) {
+//                    displayDeleteSoundDialog(sounds.get(tPos));
+//                    return false;
+//                }
+//            });
             holder.button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -277,6 +246,36 @@ public final class Adapters {
                 }
             });
             return cv;
+        }
+
+        private void displayDeleteSoundDialog(final Sound sound) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(super.getContext())
+                    .setMessage("Delete this sound?")
+                    .setTitle("Delete " + sound.getTitle())
+                    .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            new AsyncTask<Void, Void, Boolean>() {
+                                @Override
+                                public Boolean doInBackground(Void... v) {
+                                    try {
+                                        sound.getParseObject().fetchIfNeeded().delete();
+                                    } catch (Exception ex) {
+                                        Utilities.makeLogFromThrowable(ex);
+                                        return false;
+                                    }
+                                    return true;
+                                }
+                            }.execute();
+                        }
+                    })
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            builder.create().show();
         }
     }
 }

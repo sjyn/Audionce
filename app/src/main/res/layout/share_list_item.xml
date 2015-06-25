@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:background="@color/white">
 
-    <ImageView
+    <com.pkmmte.view.CircularImageView
         android:layout_width="76dp"
         android:layout_height="76dp"
         android:id="@+id/picture"

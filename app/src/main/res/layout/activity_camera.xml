@@ -31,6 +31,16 @@
             android:tint="@color/white"
             android:src="@android:drawable/ic_menu_view"
             android:layout_gravity="top|center" />
+
+        <ImageButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/cancel_button"
+            android:src="@android:drawable/ic_input_delete"
+            android:tint="@color/white"
+            android:background="@null"
+            android:onClick="onCancelClick"
+            android:layout_gravity="left|top" />
     </FrameLayout>
 
     <com.github.rahatarmanahmed.cpv.CircularProgressView xmlns:app="http://schemas.android.com/apk/res-auto"

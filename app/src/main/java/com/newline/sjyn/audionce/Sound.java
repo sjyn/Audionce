@@ -15,11 +15,13 @@ public class Sound extends Prioritized {
     private LatLng loc;
     private String title;
     private String url;
+    private ParseObject ptr;
 
-    public Sound(LatLng location, String name, String url){
+    public Sound(LatLng location, String name, String url, ParseObject po) {
         loc = location;
         title = name;
         this.url = url;
+        ptr = po;
     }
 
     public static Sound parseSound(ParseObject po){
@@ -28,7 +30,7 @@ public class Sound extends Prioritized {
         String title = po.get("title").toString();
         ParseFile pf = (ParseFile)po.get("file");
         String url = pf.getUrl();
-        return new Sound(ll,title,url);
+        return new Sound(ll, title, url, po);
     }
 
     public LatLng getLatLng(){
@@ -41,6 +43,10 @@ public class Sound extends Prioritized {
 
     public String getUrl(){
         return url;
+    }
+
+    public ParseObject getParseObject() {
+        return ptr;
     }
 
     @Override

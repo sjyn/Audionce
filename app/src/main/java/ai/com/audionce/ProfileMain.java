@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -24,8 +23,8 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +41,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.pkmmte.view.CircularImageView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -49,14 +49,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO -- Circular profile picture views?
-//TODO -- default pic doesn't dl correctly
 //TODO -- Play and pause sounds on profile page
 //TODO -- fix URI from gallery
 public class ProfileMain extends AppCompatActivity {
     private ParseUser currentUser;
     private ListView sounds;
-    private ImageView profilePic;
+    private CircularImageView profilePic;
     private TextView username;
     private TextView friends;
     private TextView noSounds;
@@ -86,7 +84,8 @@ public class ProfileMain extends AppCompatActivity {
             }
         }
         sounds = (ListView)findViewById(R.id.sounds_list_view);
-        profilePic = (ImageView)findViewById(R.id.profile_picture_main);
+
+        profilePic = (CircularImageView) findViewById(R.id.profile_picture_main);
         username = (TextView)findViewById(R.id.profile_username_main);
         friends = (TextView)findViewById(R.id.friends_text_main);
         TextView addSound = (TextView) findViewById(R.id.profile_add_text_main);
@@ -107,7 +106,7 @@ public class ProfileMain extends AppCompatActivity {
             public void done(byte[] bytes, ParseException e) {
                 if (e == null) {
                     Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
-                    profilePic.setBackground(new BitmapDrawable(getResources(), bmp));
+                    profilePic.setImageBitmap(bmp);
                 }
             }
         });
@@ -116,7 +115,6 @@ public class ProfileMain extends AppCompatActivity {
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("AUD", "Pressed profile pic");
                 createAndDisplayChooser();
             }
         });
@@ -139,6 +137,15 @@ public class ProfileMain extends AppCompatActivity {
             }
         });
         loadSounds();
+        sounds.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.e("AUD", "Sound long click");
+                Sound s = (Sound) sounds.getAdapter().getItem(position);
+                showDeleteSoundDialog(s, adapter);
+                return true;
+            }
+        });
     }
 
     private void loadSounds(){
@@ -183,6 +190,49 @@ public class ProfileMain extends AppCompatActivity {
         }.execute();
     }
 
+    private void showDeleteSoundDialog(final Sound s, final Adapters.ProfileSoundsAdapter ada) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("Delete This Sound")
+                .setMessage("Are you sure you want to delete " + s.getTitle() + "?\n" +
+                        "This action cannot be undone!")
+                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new AsyncTask<Void, Void, Boolean>() {
+                            @Override
+                            public Boolean doInBackground(Void... v) {
+                                try {
+                                    s.getParseObject().fetchIfNeeded().delete();
+                                } catch (Exception ex) {
+                                    Utilities.makeLogFromThrowable(ex);
+                                    return false;
+                                }
+                                return true;
+                            }
+
+                            @Override
+                            public void onPostExecute(Boolean res) {
+                                if (res) {
+                                    Utilities.makeToast(getApplicationContext(), "Sound Removed");
+                                    ada.remove(s);
+                                    ada.notifyDataSetChanged();
+                                } else {
+                                    Utilities.makeToast(getApplicationContext(), "Error Removing Sound");
+                                }
+                            }
+                        }.execute();
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+        builder.create().show();
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public void onResume(){
@@ -201,13 +251,13 @@ public class ProfileMain extends AppCompatActivity {
                 }
             }
         });
-        profilePic.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.e("AUD", "profile picture pressed");
-                createAndDisplayChooser();
-            }
-        });
+//        profilePic.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Log.e("AUD", "profile picture pressed");
+//                createAndDisplayChooser();
+//            }
+//        });
         loadSounds();
     }
 
@@ -376,6 +426,7 @@ public class ProfileMain extends AppCompatActivity {
             case CROP_CODE:
                 if (resultCode == RESULT_OK) {
                     final Bitmap bmp = BitmapFactory.decodeFile(SAVE_PATH);
+                    profilePic.invalidate();
                     profilePic.setImageBitmap(bmp);
                     new AsyncTask<Void, Void, Boolean>() {
                         private ParseUser pu = currentUser;
