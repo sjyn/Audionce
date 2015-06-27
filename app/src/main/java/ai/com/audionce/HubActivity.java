@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -23,14 +24,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
-import com.parse.FindCallback;
-import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 //TODO -- how to make action bar sit under translucent status bar?
@@ -40,6 +40,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     private int i;
     private LatLng mLoc;
     private ParseUser currUser;
+    private List<Sound> tempSounds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
 //        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         setContentView(R.layout.activity_hub);
         currUser = ParseUser.getCurrentUser();
+        tempSounds = new ArrayList<>();
         Utilities.loadFriends(ParseUser.getCurrentUser());
         ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_HUB);
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
@@ -113,42 +115,56 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                     LatLngBounds bnds = tMap.getProjection().getVisibleRegion().latLngBounds;
                     ParseGeoPoint sw = new ParseGeoPoint(bnds.southwest.latitude, bnds.southwest.longitude);
                     ParseGeoPoint ne = new ParseGeoPoint(bnds.northeast.latitude, bnds.northeast.longitude);
-                    ParseQuery<ParseObject> initialQ = ParseQuery.getQuery("Sounds")
-                            .whereWithinGeoBox("location", sw, ne)
-                            .whereEqualTo("is_private", false);
-                    initialQ.findInBackground(new FindCallback<ParseObject>() {
+                    new AsyncTask<ParseGeoPoint, Void, Boolean>() {
                         @Override
-                        public void done(List<ParseObject> list, ParseException e) {
-                            if (e == null && !list.isEmpty()) {
-                                for (ParseObject p : list) {
-                                    ParseGeoPoint gp = (ParseGeoPoint) p.get("location");
-                                    LatLng gll = new LatLng(gp.getLatitude(), gp.getLongitude());
-                                    tMap.addMarker(new MarkerOptions()
-                                            .position(gll)
-                                            .title(p.get("title").toString()));
+                        public Boolean doInBackground(ParseGeoPoint... pgpa) {
+                            try {
+                                List<ParseObject> lpo1 = ParseQuery.getQuery("Sounds")
+                                        .whereWithinGeoBox("location", pgpa[0], pgpa[1])
+                                        .whereEqualTo("is_private", false)
+                                        .find();
+                                for (ParseObject po : lpo1) {
+                                    Log.e("AUD", "found sound");
+                                    Sound s = Sound.parseSound(po.fetchIfNeeded());
+                                    if (!tempSounds.contains(s))
+                                        tempSounds.add(s);
                                 }
-                            } else {
-                                if (e != null)
-                                    Log.e("AUD", Log.getStackTraceString(e));
-                                else
-                                    Log.e("AUD", "List empty");
+                                List<ParseObject> lpo2 = currUser.getParseObject("shared_sounds")
+                                        .fetchIfNeeded()
+                                        .getList("sounds");
+                                for (ParseObject po : lpo2) {
+                                    Log.e("AUD", "found sound");
+                                    Sound s = Sound.parseSound(po.fetchIfNeeded());
+                                    if (!tempSounds.contains(s))
+                                        tempSounds.add(s);
+                                }
+                                List<ParseObject> lpo3 = currUser.getList("sounds");
+                                for (ParseObject po : lpo3) {
+                                    Log.e("AUD", "found sound");
+                                    Sound s = Sound.parseSound(po.fetchIfNeeded());
+                                    if (!tempSounds.contains(s))
+                                        tempSounds.add(s);
+                                }
+                            } catch (Exception ex) {
+                                Utilities.makeLogFromThrowable(ex);
+                                return false;
+                            }
+                            return true;
+                        }
+
+                        @Override
+                        public void onPostExecute(Boolean res) {
+                            if (res) {
+                                for (Sound s : tempSounds) {
+                                    LatLng ll = s.getLatLng();
+                                    tMap.addMarker(new MarkerOptions()
+                                            .title(s.getTitle())
+                                            .position(ll));
+                                }
                             }
                         }
-                    });
-                    try {
-                        ParseObject ss = currUser.getParseObject("shared_sounds").fetchIfNeeded();
-                        List<ParseObject> soundsSentToMe = (List<ParseObject>) ss.get("sounds");
-                        for (ParseObject po : soundsSentToMe) {
-                            po.fetchIfNeeded();
-                            ParseGeoPoint pgp = (ParseGeoPoint)po.get("location");
-                            LatLng gll = new LatLng(pgp.getLatitude(), pgp.getLongitude());
-                            tMap.addMarker(new MarkerOptions()
-                                    .position(gll)
-                                    .title(po.get("title").toString()));
-                        }
-                    } catch (Exception ex) {
-                        Utilities.makeLogFromThrowable(ex);
-                    }
+
+                    }.execute(sw, ne);
                 }
             }
         });
@@ -188,6 +204,9 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                 break;
             case R.id.new_sound_from_hub:
                 startActivity(new Intent(this,NewSoundActivity.class));
+                break;
+            case R.id.goto_friends:
+                startActivity(new Intent(this, ViewFriendsActivityThree.class));
                 break;
         }
         return super.onOptionsItemSelected(item);

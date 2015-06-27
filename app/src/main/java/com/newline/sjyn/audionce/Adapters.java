@@ -43,8 +43,8 @@ public final class Adapters {
             super(c, R.layout.share_list_item, list);
             this.list = list;
             isFriendSelected = new LinkedHashMap<>();
-            for(Friend f : list){
-                isFriendSelected.put(f,false);
+            for (Friend f : list) {
+                isFriendSelected.put(f, false);
             }
         }
 
@@ -63,13 +63,13 @@ public final class Adapters {
             holder.shareWith.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if(isChecked){
-                        isFriendSelected.put(list.get(pos),true);
+                    if (isChecked) {
+                        isFriendSelected.put(list.get(pos), true);
                         NewSoundActivity.notifyTextView(false);
-                        Log.e("AUD","Checked state");
+                        Log.e("AUD", "Checked state");
                     } else {
                         isFriendSelected.put(list.get(pos), false);
-                        if(getSelectedFriends().isEmpty())
+                        if (getSelectedFriends().isEmpty())
                             NewSoundActivity.notifyTextView(true);
                         else
                             NewSoundActivity.notifyTextView(false);

@@ -37,7 +37,6 @@ public class SignupActivity extends AppCompatActivity {
         pw1 = (EditText)findViewById(R.id.pw1_field);
         pw2 = (EditText)findViewById(R.id.pw2_field);
         su = (Button)findViewById(R.id.new_account);
-
     }
 
     @Override
@@ -70,8 +69,12 @@ public class SignupActivity extends AppCompatActivity {
             final String pwa = pw1.getText().toString().trim();
             final String pwb = pw2.getText().toString().trim();
             final String username = un.getText().toString().trim();
-            if (!pwa.equals(pwb)) {
+            if (pwa.length() < 6) {
+                Utilities.makeToast(this, "Password must be 6 or more characters");
+            } else if (!pwa.equals(pwb)) {
                 makeToast("Passwords do not match.");
+            } else if (username.length() < 6) {
+                Utilities.makeToast(this, "Username must be 6 or more characters");
             } else {
                 new AsyncTask<Void, String, Utilities.SignupState>() {
                     private String cUsername = username;

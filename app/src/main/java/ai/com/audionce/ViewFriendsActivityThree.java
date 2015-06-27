@@ -32,6 +32,11 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
     private List<Friend> friends;
     private Adapters.FriendAdapter adapter;
     private TextView noFriends;
+    private final String noFriendsText =
+            "You haven't added any friends yet.\nYou can add friends by selecting the " +
+                    "plus friend icon above.\n\nBy adding friends, you can drop private sounds " +
+                    "that only select friends can see.\n\nAs soon as someone accepts your friend" +
+                    " request, you will see them here.";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,12 +48,11 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
         noFriends = (TextView)findViewById(R.id.no_friends_view);
         noFriends.setVisibility(View.GONE);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        noFriends.setText("You haven't added any friends yet.\nYou can add" +
-            " friends by searching above.");
+        noFriends.setText(noFriendsText);
         fList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                displayRemoveFriendDialog(friends.get(position));
+                displayRemoveFriendDialog(adapter.getItem(position));
                 return true;
             }
         });
@@ -99,6 +103,12 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
                 break;
             case R.id.action_goto_pending:
                 startActivity(new Intent(this,ViewPendingFriendsActivity.class));
+                break;
+            case R.id.goto_map:
+                startActivity(new Intent(this, HubActivity.class));
+                break;
+            case R.id.new_sound_from_hub:
+                startActivity(new Intent(this, NewSoundActivity.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -153,7 +163,8 @@ public class ViewFriendsActivityThree extends AppCompatActivity {
         public void onPostExecute(Boolean res){
             if(res) {
                 makeToast("Friend removed");
-                friends.remove(fri);
+//                friends.remove(fri);
+                adapter.remove(fri);
                 if(friends.isEmpty())
                     noFriends.setVisibility(View.VISIBLE);
                 adapter.notifyDataSetChanged();

@@ -67,6 +67,8 @@ public class NewSoundActivity extends AppCompatActivity {
         record = (Button) findViewById(R.id.record_button);
         et = (EditText) findViewById(R.id.sound_title_et);
         publicOrPrivate = (TextView)findViewById(R.id.pub_or_priv_text_view);
+        if (Utilities.getFriends().isEmpty())
+            publicOrPrivate.setVisibility(View.GONE);
         cpv = (CircularProgressView) findViewById(R.id.progress_view);
         friendsToShareWith = (ListView)findViewById(R.id.friends_to_share_with);
         friendsToShareWith.setAdapter(adapter = new Adapters.ShareWithFriendsAdapter
@@ -89,6 +91,12 @@ public class NewSoundActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        finish();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_new_sound, menu);
         return true;
@@ -106,6 +114,15 @@ public class NewSoundActivity extends AppCompatActivity {
                 Intent in = new Intent(this,LoginActivity.class);
                 in.putExtra("should_auto_login_from_intent","no");
                 startActivity(in);
+                break;
+            case R.id.goto_friends:
+                startActivity(new Intent(this, ViewFriendsActivityThree.class));
+                break;
+            case R.id.goto_map:
+                startActivity(new Intent(this, HubActivity.class));
+                break;
+            case R.id.goto_profile:
+                startActivity(new Intent(this, ProfileMain.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -231,7 +248,6 @@ public class NewSoundActivity extends AppCompatActivity {
                                     l = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                                 }
                                 ParseGeoPoint pgp = new ParseGeoPoint(l.getLatitude(), l.getLongitude());
-                                deleteSoundsNearMe(pgp);
                                 File f = new File(soundFileLoc);
                                 Log.e("AUD", soundFileLoc);
                                 FileInputStream fis = new FileInputStream(f);

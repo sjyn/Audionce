@@ -8,6 +8,24 @@
         android:orderInCategory="100"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/goto_map"
+        android:title="@string/app_name"
+        android:icon="@drawable/ic_action_map"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/goto_friends"
+        android:icon="@drawable/ic_action_view_friends"
+        app:showAsAction="always"
+        android:title="" />
+
+    <item
+        android:id="@+id/goto_profile"
+        android:icon="@drawable/ic_action_view_profile"
+        app:showAsAction="always"
+        android:title="" />
+
     <item android:id="@+id/log_out"
         android:title="@string/logout"/>
 </menu>

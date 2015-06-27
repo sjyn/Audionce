@@ -13,6 +13,24 @@
 
     <item android:id="@+id/action_goto_pending"
         android:title="@string/pending"
-        android:icon="@drawable/pending_friends_icon"
-        app:showAsAction="ifRoom"/>
+        android:icon="@drawable/ic_action_add_friend"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/goto_map"
+        android:title="@string/app_name"
+        android:icon="@drawable/ic_action_map"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/goto_profile"
+        android:title=""
+        android:icon="@drawable/ic_action_view_profile"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/new_sound_from_hub"
+        android:title=""
+        android:icon="@drawable/ic_action_plus_sign"
+        app:showAsAction="always" />
 </menu>

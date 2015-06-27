@@ -16,12 +16,14 @@ public class Sound extends Prioritized {
     private String title;
     private String url;
     private ParseObject ptr;
+    private String objectId;
 
-    public Sound(LatLng location, String name, String url, ParseObject po) {
+    public Sound(LatLng location, String name, String url, ParseObject po, String id) {
         loc = location;
         title = name;
         this.url = url;
         ptr = po;
+        objectId = id;
     }
 
     public static Sound parseSound(ParseObject po){
@@ -30,7 +32,7 @@ public class Sound extends Prioritized {
         String title = po.get("title").toString();
         ParseFile pf = (ParseFile)po.get("file");
         String url = pf.getUrl();
-        return new Sound(ll, title, url, po);
+        return new Sound(ll, title, url, po, po.getObjectId());
     }
 
     public LatLng getLatLng(){
@@ -51,6 +53,10 @@ public class Sound extends Prioritized {
 
     @Override
     public boolean equals(Object o){
-        return (o instanceof Sound) && ((Sound)o).getTitle().equals(title);
+        return (o instanceof Sound) && ((Sound) o).getObjectId().equals(objectId);
+    }
+
+    public String getObjectId() {
+        return objectId;
     }
 }

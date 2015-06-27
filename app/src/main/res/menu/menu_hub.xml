@@ -9,23 +9,24 @@
         app:showAsAction="never" />
 
     <item android:id="@+id/log_out"
-        android:title="@string/logout"/>
+        android:title="@string/logout"
+        app:showAsAction="never" />
 
 
     <item android:id="@+id/edit_profile"
         android:title=""
-        android:icon="@android:drawable/ic_menu_edit"
-        app:showAsAction="ifRoom"/>
+        android:icon="@drawable/ic_action_view_profile"
+        app:showAsAction="always" />
 
     <item android:id="@+id/new_sound_from_hub"
         android:title=""
-        android:icon="@android:drawable/ic_menu_add"
-        app:showAsAction="ifRoom"/>
+        android:icon="@drawable/ic_action_plus_sign"
+        app:showAsAction="always" />
 
-    <!--<item-->
-    <!--android:id="@+id/action_bar_picture"-->
-    <!--android:title=""-->
-    <!--android:icon="@drawable/aud_title_bar_01"-->
-    <!--app:showAsAction="always"-->
-    <!--android:enabled="false"/>-->
+    <item
+        android:id="@+id/goto_friends"
+        android:title=""
+        android:icon="@drawable/ic_action_view_friends"
+        app:showAsAction="always" />
+
 </menu>

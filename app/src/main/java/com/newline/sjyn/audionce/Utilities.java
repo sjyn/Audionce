@@ -68,6 +68,32 @@ public class Utilities {
         });
     }
 
+//    public static void loadFriends(ParseUser user, final Adapters.ShareWithFriendsAdapter ada){
+//        flist = new ArrayList<>();
+//        ParseQuery<ParseObject> query = ParseQuery.getQuery("FriendTable")
+//                .whereEqualTo("user",user);
+//        query.findInBackground(new FindCallback<ParseObject>() {
+//            @Override
+//            public void done(List<ParseObject> list, ParseException e) {
+//                if( e == null ) {
+//                    ParseObject po = list.get(0);
+//                    for (ParseUser pu : (List<ParseUser>) po.get("all_friends")) {
+//                        try {
+//                            Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+//                            f.setType("friends");
+//                            flist.add(f);
+//                        } catch (Exception ex){
+//                            Utilities.makeLogFromThrowable(ex);
+//                            break;
+//                        }
+//                    }
+//                    ada.addAllToList(flist);
+//                    ada.notifyDataSetChanged();
+//                }
+//            }
+//        });
+//    }
+
     public static List<Friend> getFriends(){
         return flist;
     }

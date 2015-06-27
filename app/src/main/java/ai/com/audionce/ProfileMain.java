@@ -12,7 +12,6 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -51,6 +50,7 @@ import java.util.List;
 
 //TODO -- Play and pause sounds on profile page
 //TODO -- fix URI from gallery
+//TODO -- delete sound from list
 public class ProfileMain extends AppCompatActivity {
     private ParseUser currentUser;
     private ListView sounds;
@@ -84,7 +84,6 @@ public class ProfileMain extends AppCompatActivity {
             }
         }
         sounds = (ListView)findViewById(R.id.sounds_list_view);
-
         profilePic = (CircularImageView) findViewById(R.id.profile_picture_main);
         username = (TextView)findViewById(R.id.profile_username_main);
         friends = (TextView)findViewById(R.id.friends_text_main);
@@ -137,15 +136,7 @@ public class ProfileMain extends AppCompatActivity {
             }
         });
         loadSounds();
-        sounds.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.e("AUD", "Sound long click");
-                Sound s = (Sound) sounds.getAdapter().getItem(position);
-                showDeleteSoundDialog(s, adapter);
-                return true;
-            }
-        });
+
     }
 
     private void loadSounds(){
@@ -183,6 +174,15 @@ public class ProfileMain extends AppCompatActivity {
                     sounds.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
                     noSounds.setVisibility(View.GONE);
+                    sounds.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                        @Override
+                        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                            Log.e("AUD", "Sound long click");
+                            Sound s = (Sound) sounds.getAdapter().getItem(position);
+                            showDeleteSoundDialog(s, adapter);
+                            return true;
+                        }
+                    });
                 } else {
                     noSounds.setVisibility(View.VISIBLE);
                 }
@@ -288,7 +288,10 @@ public class ProfileMain extends AppCompatActivity {
                             return;
                         }
                         final String newName = et.getText().toString();
-                        if(!newName.equals("")){
+                        if (newName.length() < 6) {
+                            Utilities.makeToast(getApplicationContext(),
+                                    "Username must be 6 or more characters");
+                        } else if (!newName.equals("")) {
                             currentUser.setUsername(newName);
                             currentUser.saveInBackground(new SaveCallback() {
                                 @Override
@@ -321,7 +324,7 @@ public class ProfileMain extends AppCompatActivity {
                         dialog.dismiss();
                     }
                 }).
-                setItems(new String[]{"Camera", "Gallery"}, new DialogInterface.OnClickListener() {
+                setItems(new String[]{"Camera", /*"Gallery"*/}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
@@ -329,20 +332,20 @@ public class ProfileMain extends AppCompatActivity {
                                 startActivityForResult(new Intent(getApplicationContext(),
                                         CameraActivity.class), CAMERA_CODE);
                                 break;
-                            case 1:
-                                if (Build.VERSION.SDK_INT == 19) {
-                                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                                    intent.setType("image/*");
-                                    startActivityForResult(intent, GALLERY_CODE);
-                                } else {
-                                    Intent intent = new Intent();
-                                    intent.setType("image/*");
-                                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                                    startActivityForResult(Intent.createChooser(intent,
-                                            "Select Picture"), GALLERY_CODE);
-                                }
-                                break;
+//                            case 1:
+//                                if (Build.VERSION.SDK_INT == 19) {
+//                                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+//                                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+//                                    intent.setType("image/*");
+//                                    startActivityForResult(intent, GALLERY_CODE);
+//                                } else {
+//                                    Intent intent = new Intent();
+//                                    intent.setType("image/*");
+//                                    intent.setAction(Intent.ACTION_GET_CONTENT);
+//                                    startActivityForResult(Intent.createChooser(intent,
+//                                            "Select Picture"), GALLERY_CODE);
+//                                }
+//                                break;
                         }
                     }
                 });
@@ -368,6 +371,9 @@ public class ProfileMain extends AppCompatActivity {
                 break;
             case R.id.new_sound_from_hub:
                 startActivity(new Intent(this,NewSoundActivity.class));
+                break;
+            case R.id.goto_friends:
+                startActivity(new Intent(this, ViewFriendsActivityThree.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
