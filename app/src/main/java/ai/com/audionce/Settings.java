@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -53,6 +54,14 @@ public class Settings extends Activity {
                         sp.edit().putBoolean("should_start_service_from_hub", true).commit();
                     }
                     return true;
+                }
+            });
+            Preference abtPref = findPreference("show_about");
+            abtPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    startActivity(new Intent(getActivity(), About.class));
+                    return false;
                 }
             });
         }

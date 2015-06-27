@@ -16,4 +16,10 @@
             android:defaultValue="true" />
 
     </PreferenceCategory>
+
+    <PreferenceCategory android:title="Other">
+        <Preference
+            android:title="About"
+            android:key="show_about"></Preference>
+    </PreferenceCategory>
 </PreferenceScreen>

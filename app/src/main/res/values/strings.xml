@@ -43,4 +43,15 @@
     <string name="new_sound_title_hint">Title</string>
     <string name="save_picture">Save</string>
     <string name="capture_photo">Capture</string>
+    <string name="title_activity_about">About</string>
+    <string name="about_text_01">
+        Audionce is an app about the world around you; the idea is simple:\nYou go to a place,
+        and drop a sound. Then, someone else comes along and hears what you said. If you want,
+        you can also leave private sounds that only your friends will be able to hear.\nFinally,
+        when someone else comes along and drops a sound close to yours, your sound is deleted, lost
+        forever, drowned out by the noise of the city. It\'s nothing personal, I\'m sure. It\'s just
+        the way the world works.\n\nAudionce is the brain child of artist and developer Alicia Iott.
+        This app was built with the help of \\newline software.
+    </string>
+    <string name="abt_icons">About The Icons</string>
 </resources>
