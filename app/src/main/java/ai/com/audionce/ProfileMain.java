@@ -32,6 +32,7 @@ import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
+import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.parse.FindCallback;
 import com.parse.GetDataCallback;
 import com.parse.ParseException;
@@ -49,7 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 //TODO -- Play and pause sounds on profile page
-//TODO -- fix URI from gallery
 //TODO -- delete sound from list
 public class ProfileMain extends AppCompatActivity {
     private ParseUser currentUser;
@@ -120,7 +120,7 @@ public class ProfileMain extends AppCompatActivity {
         friends.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), ViewFriendsActivityThree.class));
+                startActivity(new Intent(getApplicationContext(), FriendsActivity.class));
             }
         });
         addSound.setOnClickListener(new View.OnClickListener() {
@@ -324,7 +324,7 @@ public class ProfileMain extends AppCompatActivity {
                         dialog.dismiss();
                     }
                 }).
-                setItems(new String[]{"Camera", /*"Gallery"*/}, new DialogInterface.OnClickListener() {
+                setItems(new String[]{"Camera", "Gallery"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
@@ -332,20 +332,15 @@ public class ProfileMain extends AppCompatActivity {
                                 startActivityForResult(new Intent(getApplicationContext(),
                                         CameraActivity.class), CAMERA_CODE);
                                 break;
-//                            case 1:
-//                                if (Build.VERSION.SDK_INT == 19) {
-//                                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-//                                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-//                                    intent.setType("image/*");
-//                                    startActivityForResult(intent, GALLERY_CODE);
-//                                } else {
-//                                    Intent intent = new Intent();
-//                                    intent.setType("image/*");
-//                                    intent.setAction(Intent.ACTION_GET_CONTENT);
-//                                    startActivityForResult(Intent.createChooser(intent,
-//                                            "Select Picture"), GALLERY_CODE);
-//                                }
-//                                break;
+                            case 1:
+                                final String galleryPath = Environment.getExternalStorageDirectory()
+                                        + "/" + Environment.DIRECTORY_DCIM + "/";
+                                Intent i = new Intent(getApplicationContext(),
+                                        FilePickerActivity.class);
+                                i.putExtra(FilePickerActivity.EXTRA_START_PATH,
+                                        galleryPath);
+                                startActivityForResult(i, GALLERY_CODE);
+                                break;
                         }
                     }
                 });
@@ -373,7 +368,7 @@ public class ProfileMain extends AppCompatActivity {
                 startActivity(new Intent(this,NewSoundActivity.class));
                 break;
             case R.id.goto_friends:
-                startActivity(new Intent(this, ViewFriendsActivityThree.class));
+                startActivity(new Intent(this, FriendsActivity.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -403,22 +398,8 @@ public class ProfileMain extends AppCompatActivity {
                 break;
             case GALLERY_CODE:
                 if (resultCode == RESULT_OK) {
-                    Uri yuri = data.getData();
-                    String selectedPath = "";
-//                    if(Build.VERSION.SDK_INT < 19){
-                    selectedPath = getPath(yuri);
-//                    } else {
-//                        ParcelFileDescriptor pfd;
-//                        try {
-//                            pfd = getContentResolver().openFileDescriptor(yuri,"r");
-//                            FileDescriptor fd = pfd.getFileDescriptor();
-//
-//                        } catch (Exception ex){
-//                            Utilities.makeLogFromThrowable(ex);
-//                        }
-//                    }
                     Intent intent = new Intent("com.android.camera.action.CROP");
-                    intent.setDataAndType(Uri.fromFile(new File(selectedPath)), "image/*");
+                    intent.setDataAndType(data.getData(), "image/*");
                     intent.putExtra("crop", "true");
                     intent.putExtra("aspectX", 1);
                     intent.putExtra("aspectY", 1);

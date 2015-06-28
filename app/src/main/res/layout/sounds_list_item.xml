@@ -12,7 +12,7 @@
         android:id="@+id/play_sound_button"
         android:src="@android:drawable/ic_media_play"
         android:background="@null"
-        android:tint="@color/black"/>
+        android:tint="@color/ab_pink" />
 
     <TextView
         android:layout_width="wrap_content"

@@ -59,7 +59,7 @@
         android:layout_below="@+id/save_sound"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
-        app:cpv_color="@color/progress_blue" />
+        app:cpv_color="@color/ab_pink" />
 
     <ListView
         android:layout_width="wrap_content"

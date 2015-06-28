@@ -217,7 +217,7 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.launcher)
-                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.launcher))
+                        .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_notif_icon))
                         .setContentTitle("Audionce")
                         .setContentText("Playing " + title)
                         .setContentIntent(pi);

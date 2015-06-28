@@ -71,10 +71,13 @@ public class SignupActivity extends AppCompatActivity {
             final String username = un.getText().toString().trim();
             if (pwa.length() < 6) {
                 Utilities.makeToast(this, "Password must be 6 or more characters");
+                su.setEnabled(true);
             } else if (!pwa.equals(pwb)) {
                 makeToast("Passwords do not match.");
+                su.setEnabled(true);
             } else if (username.length() < 6) {
                 Utilities.makeToast(this, "Username must be 6 or more characters");
+                su.setEnabled(true);
             } else {
                 new AsyncTask<Void, String, Utilities.SignupState>() {
                     private String cUsername = username;

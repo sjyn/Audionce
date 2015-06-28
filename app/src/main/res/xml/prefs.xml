@@ -18,8 +18,9 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Other">
+
         <Preference
             android:title="About"
-            android:key="show_about"></Preference>
+            android:key="show_about" />
     </PreferenceCategory>
 </PreferenceScreen>

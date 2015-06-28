@@ -116,7 +116,7 @@ public class NewSoundActivity extends AppCompatActivity {
                 startActivity(in);
                 break;
             case R.id.goto_friends:
-                startActivity(new Intent(this, ViewFriendsActivityThree.class));
+                startActivity(new Intent(this, FriendsActivity.class));
                 break;
             case R.id.goto_map:
                 startActivity(new Intent(this, HubActivity.class));

@@ -54,4 +54,5 @@
         This app was built with the help of \\newline software.
     </string>
     <string name="abt_icons">About The Icons</string>
+    <string name="title_activity_friends">Friends</string>
 </resources>

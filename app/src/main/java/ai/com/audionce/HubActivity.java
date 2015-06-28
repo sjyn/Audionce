@@ -206,7 +206,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                 startActivity(new Intent(this,NewSoundActivity.class));
                 break;
             case R.id.goto_friends:
-                startActivity(new Intent(this, ViewFriendsActivityThree.class));
+                startActivity(new Intent(this, FriendsActivity.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
