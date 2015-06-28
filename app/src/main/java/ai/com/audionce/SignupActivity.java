@@ -124,7 +124,6 @@ public class SignupActivity extends AppCompatActivity {
                             user.put("friends", ft);
                             user.save();
                         } catch (Exception ex) {
-                            Utilities.makeLogFromThrowable(ex);
                             return Utilities.SignupState.ERROR_THROWN;
                         }
                         return Utilities.SignupState.ALL_OKAY;

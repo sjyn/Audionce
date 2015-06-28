@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,7 +46,6 @@ public class LoginActivity extends AppCompatActivity {
                     in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     getApplicationContext().startActivity(in);
                 } else {
-                    Log.e("LOGIN ERROR", e.getMessage());
                     Utilities.makeToast(getApplicationContext(), "Failed to Login.");
                     li.setEnabled(true);
                 }

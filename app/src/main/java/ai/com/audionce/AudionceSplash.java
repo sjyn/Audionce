@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -90,7 +89,6 @@ public class AudionceSplash extends AppCompatActivity {
                         List<ParseUser> mFriends = (List<ParseUser>) resA.get(0).get("all_friends");
                         spc.edit().putInt("num_friends", mFriends.size()).commit();
                     } catch (Exception ex) {
-                        Utilities.makeLogFromThrowable(ex);
                         return false;
                     }
                     return true;
@@ -123,12 +121,10 @@ public class AudionceSplash extends AppCompatActivity {
         try {
             gps = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
         } catch (Exception ignored) {
-            Log.e("AUD", "GPS not enabled");
         }
         try {
             network = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         } catch (Exception ignored) {
-            Log.e("AUD", "NETWORK not enabled");
         }
         return !gps && !network;
     }

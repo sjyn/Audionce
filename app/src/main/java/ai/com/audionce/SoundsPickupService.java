@@ -17,7 +17,6 @@ import android.os.IBinder;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.newline.sjyn.audionce.PrioritizedQueue;
@@ -32,10 +31,6 @@ import com.parse.ParseQuery;
 import java.io.IOException;
 import java.util.List;
 
-
-//TODO -- Play multiple sounds at once using SoundPool
-//TODO -- shave
-
 public class SoundsPickupService extends Service implements AudioManager.OnAudioFocusChangeListener {
     private LocationManager manager;
     private PrioritizedQueue<Sound> playQueue;
@@ -49,22 +44,17 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.e("AUD", "Service stopping");
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.e("AUD", "Service starting");
         playQueue = new PrioritizedQueue<>();
         playingSound = null;
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 30, new SoundLocationListener());
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int res = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-        if (res != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            Log.e("AUD", "Could not get audio focus");
-        }
+        audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
     }
 
     @Override
@@ -74,14 +64,12 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                 if (tPlayer == null) {
                     try {
                         playMedia();
-                    } catch (Exception ex) {
-                        Utilities.makeLogFromThrowable(ex);
+                    } catch (Exception ignored) {
                     }
                 } else {
                     try {
                         tPlayer.start();
                     } catch (Exception ex) {
-                        Utilities.makeLogFromThrowable(ex);
                         tPlayer = null;
                     }
                 }
@@ -106,7 +94,6 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                         if (tPlayer.isPlaying())
                             tPlayer.pause();
                     } catch (Exception ignored) {
-                        Utilities.makeLogFromThrowable(ignored);
                         tPlayer = null;
                     }
                 }
@@ -121,16 +108,11 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
 
     @SuppressWarnings("unused")
     private void playMedia() throws IOException {
-        Log.e("AUD", "playMedia() called");
-        Log.e("AUD", "sound null? " + (playingSound == null));
-        Log.e("AUD", "playQueue empty? " + playQueue.isEmpty());
         if(!playQueue.isEmpty() && playingSound == null){
-            Log.e("AUD", "preparing to play media");
             tPlayer = new MediaPlayer();
             tPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             playingSound = playQueue.dequeueByPriority();
             makeNotification(playingSound.getTitle());
-            Log.e("AUD", playingSound.getUrl());
             tPlayer.setDataSource(getApplicationContext(), Uri.parse(playingSound.getUrl()));
             tPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
@@ -140,8 +122,7 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                         mp = null;
                         playingSound = null;
                         playMedia();
-                    } catch (Exception ex) {
-                        Log.e("AUD", Log.getStackTraceString(ex));
+                    } catch (Exception ignored) {
                     }
                 }
             });
@@ -153,7 +134,6 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
     private class SoundLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(final Location l){
-            Log.e("AUD", "Location changed from service");
             ParseGeoPoint mpgp = new ParseGeoPoint(l.getLatitude(),l.getLongitude());
             ParseQuery<ParseObject> soundsNearMe = ParseQuery.getQuery("Sounds");
             soundsNearMe.whereWithinKilometers("location",mpgp,Utilities.SOUNDS_DISTANCE_AWAY_KM);
@@ -162,7 +142,6 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                 public void done(List<ParseObject> list, ParseException e) {
                     if(e == null && !list.isEmpty()){
                         playQueue.clear();
-                        Log.e("AUD", "did find sounds? " + list.size());
                         for(ParseObject po : list){
                             try {
                                 Sound s = Sound.parseSound(po);
@@ -172,17 +151,14 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                                 sLoc.setLatitude(sLatLng.latitude);
                                 s.setPriority(sLoc.distanceTo(l));
                                 playQueue.enqueue(s);
-//                                Log.e("AUD", "playQueue still empty? " + playQueue.isEmpty());
-                            } catch (Exception ex){
-                                Utilities.makeLogFromThrowable(ex);
+                            } catch (Exception ignored) {
                             }
                         }
                     }
                     if (e == null) {
                         try{
                             playMedia();
-                        } catch (Exception ex){
-                            Utilities.makeLogFromThrowable(ex);
+                        } catch (Exception ignored) {
                         }
                     }
                 }

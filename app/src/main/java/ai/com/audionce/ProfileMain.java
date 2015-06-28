@@ -6,7 +6,6 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
@@ -17,7 +16,6 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +26,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
@@ -49,7 +46,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO -- Play and pause sounds on profile page
 //TODO -- delete sound from list
 public class ProfileMain extends AppCompatActivity {
     private ParseUser currentUser;
@@ -73,7 +69,6 @@ public class ProfileMain extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_main);
-        ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_PROFILE);
         f = new File(SAVE_PATH);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         if(!f.exists()){
@@ -95,9 +90,6 @@ public class ProfileMain extends AppCompatActivity {
         opts.inSampleSize = Utilities.calculateInSampleSize
                 (opts, profilePic.getMaxWidth(), profilePic.getMaxHeight());
         opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        if(currentUser == null){
-            Log.e("PROFILE","User null");
-        }
         username.setText(currentUser.getUsername());
         final ParseFile picParse = (ParseFile) currentUser.get("profile_picture");
         picParse.getDataInBackground(new GetDataCallback() {
@@ -160,7 +152,6 @@ public class ProfileMain extends AppCompatActivity {
                     try {
                         fSounds.add(Sound.parseSound(po.fetchIfNeeded()));
                     } catch (Exception ex){
-                        Log.e("AUD",Log.getStackTraceString(ex));
                         return false;
                     }
                 }
@@ -177,7 +168,6 @@ public class ProfileMain extends AppCompatActivity {
                     sounds.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                         @Override
                         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                            Log.e("AUD", "Sound long click");
                             Sound s = (Sound) sounds.getAdapter().getItem(position);
                             showDeleteSoundDialog(s, adapter);
                             return true;
@@ -204,7 +194,6 @@ public class ProfileMain extends AppCompatActivity {
                                 try {
                                     s.getParseObject().fetchIfNeeded().delete();
                                 } catch (Exception ex) {
-                                    Utilities.makeLogFromThrowable(ex);
                                     return false;
                                 }
                                 return true;
@@ -246,18 +235,9 @@ public class ProfileMain extends AppCompatActivity {
                     ParseObject lst = list.get(0);
                     List<ParseUser> fnds = (List<ParseUser>) lst.get("all_friends");
                     friends.setText("Friends (" + fnds.size() + ")");
-                } else {
-                    Log.e("AUD", Log.getStackTraceString(e));
                 }
             }
         });
-//        profilePic.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Log.e("AUD", "profile picture pressed");
-//                createAndDisplayChooser();
-//            }
-//        });
         loadSounds();
     }
 
@@ -377,12 +357,9 @@ public class ProfileMain extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
-        Log.i("AUD","In act res");
-        Log.i("AUD","Request Code: " + requestCode);
         profilePic.setEnabled(false);
         switch (requestCode){
             case CAMERA_CODE:
-                Log.i("AUD", "Camera code");
                 if (resultCode == RESULT_OK) {
                     Intent intent = new Intent("com.android.camera.action.CROP");
                     intent.setDataAndType(Uri.fromFile(f), "image/*");
@@ -428,15 +405,9 @@ public class ProfileMain extends AppCompatActivity {
                                 pu.put("profile_picture", pf);
                                 pu.save();
                             } catch (Exception ex) {
-                                Utilities.makeLogFromThrowable(ex);
                                 return false;
                             }
                             return true;
-                        }
-
-                        public void onPostExecute(Boolean res) {
-                            if (res)
-                                Log.e("AUD", "File succsessfully saved");
                         }
                     }.execute();
                 }
@@ -447,25 +418,8 @@ public class ProfileMain extends AppCompatActivity {
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("AUD", "profile picture pressed");
                 createAndDisplayChooser();
             }
         });
-    }
-
-    @SuppressLint("Recycle")
-    private String getPath(Uri uri) {
-        if (uri == null) {
-            return null;
-        }
-        String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
-        if (cursor != null) {
-            int column_index = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(column_index);
-        }
-        return uri.getPath();
     }
 }

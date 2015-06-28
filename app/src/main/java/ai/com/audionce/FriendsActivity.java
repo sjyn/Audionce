@@ -14,7 +14,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,7 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
+@SuppressWarnings("ALL")
 public class FriendsActivity extends AppCompatActivity {
 
     @Override
@@ -142,6 +141,8 @@ public class FriendsActivity extends AppCompatActivity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle instance) {
+            if (adapter != null)
+                adapter.clear();
             populateFriends(inflater);
             return super.onCreateView(inflater, container, instance);
         }
@@ -192,7 +193,6 @@ public class FriendsActivity extends AppCompatActivity {
                                         tUser.save();
                                         friendUser.save();
                                     } catch (Exception ex) {
-                                        Utilities.makeLogFromThrowable(ex);
                                         return false;
                                     }
                                     return true;
@@ -227,22 +227,46 @@ public class FriendsActivity extends AppCompatActivity {
             builder.create().show();
         }
 
-        private void populateFriends(LayoutInflater inflater) {
-            if (Utilities.getFriends() != null) {
-                adapter = new Adapters.FriendAdapter
-                        (inflater.getContext(), Utilities.getFriends());
-            } else {
-                Utilities.loadFriends(ParseUser.getCurrentUser());
-                adapter = new Adapters.FriendAdapter
-                        (inflater.getContext(), Utilities.getFriends());
-            }
-            setListAdapter(adapter);
+        private void populateFriends(final LayoutInflater inflater) {
+            new AsyncTask<Void, Void, Boolean>() {
+                private ArrayList<Friend> cpy;
+
+                @Override
+                public Boolean doInBackground(Void... v) {
+                    cpy = new ArrayList<>();
+                    try {
+                        ParseObject po = ParseUser.getCurrentUser().
+                                getParseObject("friends").fetchIfNeeded();
+                        List<ParseUser> list = po.getList("all_friends");
+                        for (ParseUser pu : list) {
+                            Friend f = Friend.parseFriend(pu.fetchIfNeeded());
+                            f.setType("friends");
+                            cpy.add(f);
+                        }
+                    } catch (Exception ex) {
+                        return false;
+                    }
+                    return true;
+                }
+
+                @Override
+                public void onPostExecute(Boolean res) {
+                    super.onPostExecute(res);
+                    Utilities.setFriendsList(cpy);
+                    adapter = new Adapters.FriendAdapter
+                            (inflater.getContext(), Utilities.getFriends());
+                    setListAdapter(adapter);
+                }
+            }.execute();
         }
     }
 
     public static class PendingFragment extends ListFragment {
         private Adapters.FriendAdapter adapter;
-        private final String noPendingText = "You have no pending requests.";
+        private final String noPendingText = "You have no pending requests.\n\n" +
+                "If a request is \"pending,\" you are waiting on that person to accept your " +
+                "request. You can rescind the request by holding down on the person.\n\nIf a request " +
+                "is \"requested,\" you can accept them by clicking on the request.";
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle instance) {
@@ -278,7 +302,6 @@ public class FriendsActivity extends AppCompatActivity {
                                             .fetchIfNeeded()
                                             .delete();
                                 } catch (Exception ex) {
-                                    Utilities.makeLogFromThrowable(ex);
                                     return false;
                                 }
                                 return true;
@@ -313,7 +336,6 @@ public class FriendsActivity extends AppCompatActivity {
                                     setTheirFriends(f.getParseUser().fetchIfNeeded());
                                     cleanUpPending();
                                 } catch (Exception ex) {
-                                    Utilities.makeLogFromThrowable(ex);
                                     return false;
                                 }
                                 return true;
@@ -390,7 +412,6 @@ public class FriendsActivity extends AppCompatActivity {
                             reqs.add(f);
                         }
                     } catch (Exception ex) {
-                        Log.e("AUD", Log.getStackTraceString(ex));
                         return false;
                     }
                     return true;
@@ -399,7 +420,6 @@ public class FriendsActivity extends AppCompatActivity {
                 @Override
                 public void onPostExecute(Boolean res) {
                     if (res) {
-                        Log.e("AUD", "repopulation okay");
                         Collections.sort(pend);
                         Collections.sort(reqs);
                         List<Friend> all = new ArrayList<>();
@@ -494,7 +514,6 @@ public class FriendsActivity extends AppCompatActivity {
                         }
                         foundFriends.removeAll(Utilities.getFriends());
                     } catch (Exception ex) {
-                        Utilities.makeLogFromThrowable(ex);
                         return false;
                     }
                     return true;
@@ -531,7 +550,6 @@ public class FriendsActivity extends AppCompatActivity {
                                 newPend.put("from", pu);
                                 newPend.save();
                             } catch (Exception ex) {
-                                Utilities.makeLogFromThrowable(ex);
                                 return false;
                             }
                             return true;

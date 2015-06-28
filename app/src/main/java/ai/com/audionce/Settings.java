@@ -12,18 +12,13 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 
-import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Utilities;
 
-//TODO -- Logout of current profile
-//TODO -- About
-//TODO -- delete all sounds
 public class Settings extends Activity {
 
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_SETTINGS);
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.replace(android.R.id.content, new SettingsFragment());

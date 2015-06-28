@@ -13,7 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
@@ -26,7 +25,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
-import com.newline.sjyn.audionce.Utilities;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -117,7 +115,6 @@ public class CameraActivity extends AppCompatActivity {
                     fos.write(baos.toByteArray());
                     fos.close();
                 } catch (Exception ex) {
-                    Utilities.makeLogFromThrowable(ex);
                     return false;
                 }
                 return true;
@@ -185,7 +182,6 @@ public class CameraActivity extends AppCompatActivity {
                 fos.write(data);
                 fos.close();
             } catch (Exception ex) {
-                Utilities.makeLogFromThrowable(ex);
                 onFailure();
             }
         }
@@ -196,13 +192,11 @@ public class CameraActivity extends AppCompatActivity {
         try {
             cam = Camera.open();
         } catch (Exception ex) {
-            Utilities.makeLogFromThrowable(ex);
         }
         return cam;
     }
 
     public void toggleCameraLense(View v) {
-        Log.e("AUD", "Switch button pressed");
         try {
             camera.stopPreview();
         } catch (Exception ignored) {
@@ -286,8 +280,7 @@ public class CameraActivity extends AppCompatActivity {
                 camera.setPreviewDisplay(holder);
                 camera.setDisplayOrientation(90);
                 camera.startPreview();
-            } catch (Exception ex) {
-                Utilities.makeLogFromThrowable(ex);
+            } catch (Exception ignored) {
             }
         }
 
@@ -306,8 +299,7 @@ public class CameraActivity extends AppCompatActivity {
                 camera.setPreviewDisplay(holder);
                 camera.setDisplayOrientation(90);
                 camera.startPreview();
-            } catch (Exception ex) {
-                Utilities.makeLogFromThrowable(ex);
+            } catch (Exception ignored) {
             }
         }
 

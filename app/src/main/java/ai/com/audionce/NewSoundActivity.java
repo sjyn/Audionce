@@ -12,7 +12,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,7 +22,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
-import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Adapters;
 import com.newline.sjyn.audionce.Friend;
 import com.newline.sjyn.audionce.Utilities;
@@ -60,8 +58,6 @@ public class NewSoundActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_sound);
-        ActivityTracker tracker = ActivityTracker.getActivityTracker();
-        tracker.update(this, ActivityTracker.ActiveActivity.ACTIVITY_NEW_SOUND);
         play = (Button) findViewById(R.id.play_button);
         save = (Button) findViewById(R.id.save_sound);
         record = (Button) findViewById(R.id.record_button);
@@ -80,12 +76,9 @@ public class NewSoundActivity extends AppCompatActivity {
     }
 
     public static void notifyTextView(boolean empty){
-        Log.e("AUD", "notifyTextView() called");
         if(empty){
-            Log.e("AUD", "Setting text to \"public\"");
             publicOrPrivate.setText("public");
         } else {
-            Log.e("AUD", "Setting text to \"private\"");
             publicOrPrivate.setText("private");
         }
     }
@@ -140,7 +133,6 @@ public class NewSoundActivity extends AppCompatActivity {
             mr = new MediaRecorder();
             mr.setAudioSource(MediaRecorder.AudioSource.MIC);
             mr.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
-            Log.e("AUD", filePath);
             mr.setOutputFile(filePath);
             mr.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             mr.setMaxDuration(Utilities.SOUND_DURATION);
@@ -152,7 +144,6 @@ public class NewSoundActivity extends AppCompatActivity {
                 ((Button) v).setText("stop");
             } catch (Exception ex) {
                 recording = false;
-                Utilities.makeLogFromThrowable(ex);
                 Utilities.makeToast(this, "Error Recording Audio.");
             }
         } else {
@@ -186,7 +177,6 @@ public class NewSoundActivity extends AppCompatActivity {
                     save.setEnabled(true);
                 }
             });
-            Log.e("AUD", getCacheDir().getPath());
             File f = new File(filePath);
             try {
                 mp.setDataSource(this, Uri.fromFile(f));
@@ -194,11 +184,9 @@ public class NewSoundActivity extends AppCompatActivity {
                 mp.start();
                 playing = true;
             } catch (Exception ex) {
-                Utilities.makeLogFromThrowable(ex);
                 Utilities.makeToast(this, "Error Playing Audio.");
             }
         } else {
-            Log.e("AUD", "Sound currently playing");
             mp.stop();
             mp.release();
             mp = null;
@@ -249,7 +237,6 @@ public class NewSoundActivity extends AppCompatActivity {
                                 }
                                 ParseGeoPoint pgp = new ParseGeoPoint(l.getLatitude(), l.getLongitude());
                                 File f = new File(soundFileLoc);
-                                Log.e("AUD", soundFileLoc);
                                 FileInputStream fis = new FileInputStream(f);
                                 byte[] fArray = new byte[(int) f.length()];
                                 fis.read(fArray);
@@ -284,7 +271,6 @@ public class NewSoundActivity extends AppCompatActivity {
                                 tUser.add("sounds", myObj);
                                 tUser.save();
                             } catch (Exception ex) {
-                                Utilities.makeLogFromThrowable(ex);
                                 return false;
                             }
                             return true;

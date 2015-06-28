@@ -10,16 +10,12 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.view.View;
 
-import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.PrioritizedQueue;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
 import com.parse.FindCallback;
-import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
@@ -28,14 +24,17 @@ import com.parse.ParseQuery;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO -- No sound playing
+//import com.newline.sjyn.audionce.ActivityTracker;
+
+//**********EXPERIMENTAL*********//
+@Deprecated
 public class SoundsPickupService2 extends Service implements AudioManager.OnAudioFocusChangeListener{
     private SoundPool pool;
     private PrioritizedQueue<Sound> pQueue;
     private ArrayList<Integer> soundIDs, playIDs;
     private LocationManager locationManager;
     private AudioManager audioManager;
-    private ActivityTracker tracker;
+    //    private ActivityTracker tracker;
     private boolean playing;
 
     public SoundsPickupService2() {
@@ -50,7 +49,7 @@ public class SoundsPickupService2 extends Service implements AudioManager.OnAudi
         pQueue = new PrioritizedQueue<>();
         soundIDs = playIDs = new ArrayList<>();
         pool = new SoundPool(25,AudioManager.STREAM_MUSIC,0);
-        tracker = ActivityTracker.getActivityTracker();
+//        tracker = ActivityTracker.getActivityTracker();
         locationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,15000,
                 Utilities.SOUNDS_DISTANCE_AWAY_M,new LocationManagerListener());
@@ -109,15 +108,15 @@ public class SoundsPickupService2 extends Service implements AudioManager.OnAudi
             }
         }
         playing = true;
-        tracker.postSnackBarWithText("Playing Audio\nTap To Pause", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(playing)
-                    pauseAllSounds();
-                else
-                    resumeAllSounds();
-            }
-        });
+//        tracker.postSnackBarWithText("Playing Audio\nTap To Pause", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if(playing)
+//                    pauseAllSounds();
+//                else
+//                    resumeAllSounds();
+//            }
+//        });
     }
 
     @SuppressWarnings("deprecation")

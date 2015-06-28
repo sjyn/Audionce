@@ -4,15 +4,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -21,7 +21,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.newline.sjyn.audionce.ActivityTracker;
 import com.newline.sjyn.audionce.Sound;
 import com.newline.sjyn.audionce.Utilities;
 import com.parse.ParseGeoPoint;
@@ -29,11 +28,9 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO -- how to make action bar sit under translucent status bar?
 public class HubActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap tMap;
@@ -41,17 +38,17 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     private LatLng mLoc;
     private ParseUser currUser;
     private List<Sound> tempSounds;
+    private CircularProgressView cpv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        View decorView = getWindow().getDecorView();
-//        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         setContentView(R.layout.activity_hub);
+        cpv = (CircularProgressView) findViewById(R.id.progress_view);
+        cpv.setVisibility(View.GONE);
         currUser = ParseUser.getCurrentUser();
         tempSounds = new ArrayList<>();
         Utilities.loadFriends(ParseUser.getCurrentUser());
-        ActivityTracker.getActivityTracker().update(this, ActivityTracker.ActiveActivity.ACTIVITY_HUB);
         MapFragment mapFrag = (MapFragment)getFragmentManager().findFragmentById(R.id.map);
         mapFrag.getMapAsync(this);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -82,32 +79,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap map){
         tMap = map;
         tMap.setMyLocationEnabled(true);
-        //-=-=-=-=-=-=-=-=-=-=-FOR DEBUG ONLY-=-=-=-=-=-=-=-=-=-=-=//
-//        tMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//            @Override
-//            public boolean onMarkerClick(Marker marker) {
-//                LatLng markerLoc = marker.getPosition();
-//                Location mark = new Location("");
-//                mark.setLongitude(markerLoc.longitude);
-//                mark.setLatitude(markerLoc.latitude);
-//                ParseQuery<ParseObject> gSound = ParseQuery.getQuery("Sounds");
-//                gSound.whereEqualTo("location",
-//                        new ParseGeoPoint(mark.getLatitude(), mark.getLongitude()));
-//                gSound.findInBackground(new FindCallback<ParseObject>() {
-//                    @Override
-//                    public void done(List<ParseObject> list, ParseException e) {
-//                        Sound s = Sound.parseSound(list.get(0));
-//                        try {
-//                            playSound(s);
-//                        } catch (Exception ex) {
-//                            Utilities.makeLogFromThrowable(ex);
-//                        }
-//                    }
-//                });
-//                return false;
-//            }
-//        });
-        //-=-=-=-=-=-=-=-=-=-=-END DEBUG ONLY-=-=-=-=-=-=-=-=-=-=-=//
+        tMap.getUiSettings().setZoomControlsEnabled(true);
         tMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition cameraPosition) {
@@ -117,6 +89,12 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                     ParseGeoPoint ne = new ParseGeoPoint(bnds.northeast.latitude, bnds.northeast.longitude);
                     new AsyncTask<ParseGeoPoint, Void, Boolean>() {
                         @Override
+                        public void onPreExecute() {
+                            cpv.setVisibility(View.VISIBLE);
+                            cpv.startAnimation();
+                        }
+
+                        @Override
                         public Boolean doInBackground(ParseGeoPoint... pgpa) {
                             try {
                                 List<ParseObject> lpo1 = ParseQuery.getQuery("Sounds")
@@ -124,7 +102,6 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                                         .whereEqualTo("is_private", false)
                                         .find();
                                 for (ParseObject po : lpo1) {
-                                    Log.e("AUD", "found sound");
                                     Sound s = Sound.parseSound(po.fetchIfNeeded());
                                     if (!tempSounds.contains(s))
                                         tempSounds.add(s);
@@ -133,20 +110,17 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                                         .fetchIfNeeded()
                                         .getList("sounds");
                                 for (ParseObject po : lpo2) {
-                                    Log.e("AUD", "found sound");
                                     Sound s = Sound.parseSound(po.fetchIfNeeded());
                                     if (!tempSounds.contains(s))
                                         tempSounds.add(s);
                                 }
                                 List<ParseObject> lpo3 = currUser.getList("sounds");
                                 for (ParseObject po : lpo3) {
-                                    Log.e("AUD", "found sound");
                                     Sound s = Sound.parseSound(po.fetchIfNeeded());
                                     if (!tempSounds.contains(s))
                                         tempSounds.add(s);
                                 }
                             } catch (Exception ex) {
-                                Utilities.makeLogFromThrowable(ex);
                                 return false;
                             }
                             return true;
@@ -154,6 +128,8 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
 
                         @Override
                         public void onPostExecute(Boolean res) {
+                            cpv.clearAnimation();
+                            cpv.setVisibility(View.GONE);
                             if (res) {
                                 for (Sound s : tempSounds) {
                                     LatLng ll = s.getLatLng();
@@ -173,12 +149,15 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
             public void onMyLocationChange(Location location) {
                 mLoc = new LatLng(location.getLatitude(), location.getLongitude());
                 if (i == 0) {
+                    cpv.setVisibility(View.VISIBLE);
+                    cpv.startAnimation();
                     tMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLoc, 17), 4000, null);
                     i++;
+                    cpv.clearAnimation();
+                    cpv.setVisibility(View.GONE);
                 }
             }
         });
-        Log.e("AUD", "Map ready");
     }
 
     @Override
@@ -210,33 +189,5 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void playSound(Sound s) throws IOException {
-//        String tmpPath = getCacheDir().getPath() + "/halp.aac";
-        final MediaPlayer mp = new MediaPlayer();
-        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        Log.e("AUD", s.getUrl());
-        mp.setDataSource(s.getUrl());
-        mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer medp) {
-                mp.start();
-            }
-        });
-        mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                Log.e("AUD", what + "");
-                return false;
-            }
-        });
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer medp) {
-                mp.release();
-            }
-        });
-        mp.prepareAsync();
     }
 }
