@@ -7,9 +7,8 @@ This app is the brain child of <a href="https://github.com/iciaio">Alicia Iott</
 Currently, the oAuth key for the Parse initialization and the Google Maps v2 API are available, but when a release is posted, these will be removed from the code.
 
 #Goals
-Currently, the code is full of TODO comments. While my main focus is the Android version of this app, I like to pop over and (attempt to) mess with the iOS version of the app as well. As such, some of the TODOs will be addressed, and others will not.<br/>
-
-To be honest, I'm terrible at UI design, and Alicia is pretty much holding my hand through it. I like to deal with things like more efficient code, cloud code, storing data, database management, and things like that. But I guess I do eventually have to maybe probably do all that UI stuff. Woo.
+Exciting news! Audionce is ready for release. It still has bugs, but it is good enough to put up on the app store. Once I get the correct keys from Parse and Google Maps, I'll put it up on the app store.<br/>
+If you're interested in testing the app, just email me and I can send you the .apk.
 
 # Making this repository your own
 <ol>
