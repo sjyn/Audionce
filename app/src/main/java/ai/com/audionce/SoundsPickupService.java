@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
@@ -37,6 +38,7 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
     private Sound playingSound;
     private MediaPlayer tPlayer;
     private AudioManager audioManager;
+    private SharedPreferences sp;
 
     public SoundsPickupService() {
     }
@@ -51,6 +53,7 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
         super.onCreate();
         playQueue = new PrioritizedQueue<>();
         playingSound = null;
+        sp = PreferenceManager.getDefaultSharedPreferences(this);
         manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 30, new SoundLocationListener());
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -121,7 +124,8 @@ public class SoundsPickupService extends Service implements AudioManager.OnAudio
                         mp.release();
                         mp = null;
                         playingSound = null;
-                        playMedia();
+                        if (sp.getBoolean("should_start_service_from_hub", true))
+                            playMedia();
                     } catch (Exception ignored) {
                     }
                 }

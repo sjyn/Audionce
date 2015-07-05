@@ -151,7 +151,7 @@ public class HubActivity extends AppCompatActivity implements OnMapReadyCallback
                 if (i == 0) {
                     cpv.setVisibility(View.VISIBLE);
                     cpv.startAnimation();
-                    tMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLoc, 17), 4000, null);
+                    tMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLoc, 17), 3000, null);
                     i++;
                     cpv.clearAnimation();
                     cpv.setVisibility(View.GONE);

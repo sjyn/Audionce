@@ -18,6 +18,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.newline.sjyn.audionce.Utilities;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -27,6 +28,7 @@ import java.util.List;
 
 
 public class AudionceSplash extends AppCompatActivity {
+    private CircularProgressView cpv;
 
     @Override
     @SuppressWarnings("null")
@@ -41,6 +43,8 @@ public class AudionceSplash extends AppCompatActivity {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
         }
         setContentView(R.layout.activity_audionce_splash);
+        cpv = (CircularProgressView) findViewById(R.id.progress_view);
+        cpv.startAnimation();
         if (!Utilities.doesHaveNetworkConnection(this)) {
             Utilities.makeToast(this, "No Network Connection.");
             startActivity(new Intent(this, LoginActivity.class));
@@ -96,6 +100,7 @@ public class AudionceSplash extends AppCompatActivity {
 
                 @Override
                 public void onPostExecute(Boolean res) {
+                    cpv.clearAnimation();
                     if (res) {
                         Toast.makeText(getApplicationContext(), "Logged in!", Toast.LENGTH_SHORT).show();
                         Intent in = new Intent(getApplicationContext(), HubActivity.class);

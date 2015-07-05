@@ -24,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.github.rahatarmanahmed.cpv.CircularProgressView;
 import com.newline.sjyn.audionce.Adapters;
@@ -133,6 +134,8 @@ public class FriendsActivity extends AppCompatActivity {
 
     public static class FriendFragment extends ListFragment {
         private Adapters.FriendAdapter adapter;
+        private CircularProgressView cpv;
+        private TextView tv;
         private final String noFriendsText =
                 "You haven't added any friends yet.\nYou can add friends by selecting the " +
                         "search option above.\n\nBy adding friends, you can drop private sounds " +
@@ -143,14 +146,22 @@ public class FriendsActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle instance) {
             if (adapter != null)
                 adapter.clear();
-            populateFriends(inflater);
-            return super.onCreateView(inflater, container, instance);
+//            View v = View.inflate(getActivity(),R.layout.friends_fragment_layout,container);
+            View v = inflater.inflate(R.layout.friends_fragment_layout, container, false);
+            cpv = (CircularProgressView) v.findViewById(R.id.progress_view);
+            cpv.setVisibility(View.GONE);
+            tv = (TextView) v.findViewById(R.id.empty_text_view);
+            tv.setText(noFriendsText);
+            tv.setVisibility(View.GONE);
+            return v;
         }
 
         @Override
         public void onStart() {
             super.onStart();
-            setEmptyText(noFriendsText);
+//            setListShown(true);
+            populateFriends();
+//            setEmptyText(noFriendsText);
             configureLongClick();
         }
 
@@ -227,9 +238,15 @@ public class FriendsActivity extends AppCompatActivity {
             builder.create().show();
         }
 
-        private void populateFriends(final LayoutInflater inflater) {
+        private void populateFriends() {
             new AsyncTask<Void, Void, Boolean>() {
                 private ArrayList<Friend> cpy;
+
+                @Override
+                public void onPreExecute() {
+                    cpv.setVisibility(View.VISIBLE);
+                    cpv.startAnimation();
+                }
 
                 @Override
                 public Boolean doInBackground(Void... v) {
@@ -253,9 +270,15 @@ public class FriendsActivity extends AppCompatActivity {
                 public void onPostExecute(Boolean res) {
                     super.onPostExecute(res);
                     Utilities.setFriendsList(cpy);
+                    if (Utilities.getFriends().isEmpty())
+                        tv.setVisibility(View.VISIBLE);
+                    else
+                        tv.setVisibility(View.GONE);
                     adapter = new Adapters.FriendAdapter
-                            (inflater.getContext(), Utilities.getFriends());
+                            (getActivity(), Utilities.getFriends());
                     setListAdapter(adapter);
+                    cpv.clearAnimation();
+                    cpv.setVisibility(View.GONE);
                 }
             }.execute();
         }
@@ -263,6 +286,8 @@ public class FriendsActivity extends AppCompatActivity {
 
     public static class PendingFragment extends ListFragment {
         private Adapters.FriendAdapter adapter;
+        private CircularProgressView cpv;
+        private TextView tv;
         private final String noPendingText = "You have no pending requests.\n\n" +
                 "If a request is \"pending,\" you are waiting on that person to accept your " +
                 "request. You can rescind the request by holding down on the person.\n\nIf a request " +
@@ -270,15 +295,20 @@ public class FriendsActivity extends AppCompatActivity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle instance) {
-            populatePendingFriends(inflater);
-            return super.onCreateView(inflater, container, instance);
+            View v = inflater.inflate(R.layout.pending_fragment_layout, container, false);
+            cpv = (CircularProgressView) v.findViewById(R.id.progress_view);
+            cpv.setVisibility(View.GONE);
+            tv = (TextView) v.findViewById(R.id.empty_text_view);
+            tv.setText(noPendingText);
+            tv.setVisibility(View.GONE);
+            return v;
         }
 
         @Override
         public void onStart() {
             super.onStart();
+            populatePendingFriends();
             configureLongClick();
-            setEmptyText(noPendingText);
         }
 
         private void configureLongClick() {
@@ -311,6 +341,10 @@ public class FriendsActivity extends AppCompatActivity {
                             public void onPostExecute(Boolean res) {
                                 if (res) {
                                     adapter.remove(f);
+                                    if (adapter.isEmpty())
+                                        tv.setVisibility(View.VISIBLE);
+                                    else
+                                        tv.setVisibility(View.GONE);
                                     adapter.notifyDataSetChanged();
                                     Utilities.makeToast(getActivity(), "Request rescinded.");
                                 }
@@ -346,6 +380,10 @@ public class FriendsActivity extends AppCompatActivity {
                                 if (res) {
                                     Utilities.addFriend(fri);
                                     adapter.remove(fri);
+                                    if (adapter.isEmpty())
+                                        tv.setVisibility(View.VISIBLE);
+                                    else
+                                        tv.setVisibility(View.GONE);
                                     adapter.notifyDataSetChanged();
                                     Utilities.makeToast(getActivity(), "Friend added!");
                                 }
@@ -382,10 +420,16 @@ public class FriendsActivity extends AppCompatActivity {
             });
         }
 
-        private void populatePendingFriends(final LayoutInflater inflater) {
+        private void populatePendingFriends() {
             new AsyncTask<Void, Void, Boolean>() {
                 private ParseUser tUser = ParseUser.getCurrentUser();
                 private List<Friend> pend, reqs;
+
+                @Override
+                public void onPreExecute() {
+                    cpv.setVisibility(View.VISIBLE);
+                    cpv.startAnimation();
+                }
 
                 @Override
                 public Boolean doInBackground(Void... v) {
@@ -428,9 +472,15 @@ public class FriendsActivity extends AppCompatActivity {
                         Set<Friend> set = new HashSet<>(all);
                         all.clear();
                         all.addAll(set);
-                        adapter = new Adapters.FriendAdapter(inflater.getContext(), all);
+                        if (set.isEmpty())
+                            tv.setVisibility(View.VISIBLE);
+                        else
+                            tv.setVisibility(View.GONE);
+                        adapter = new Adapters.FriendAdapter(getActivity(), all);
                         setListAdapter(adapter);
                     }
+                    cpv.clearAnimation();
+                    cpv.setVisibility(View.GONE);
                 }
             }.execute();
         }

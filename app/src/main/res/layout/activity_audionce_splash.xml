@@ -24,4 +24,14 @@
         android:layout_alignParentEnd="true"
         android:paddingBottom="10dp"
         android:textColor="@color/white" />
+
+    <com.github.rahatarmanahmed.cpv.CircularProgressView xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/progress_view"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        app:cpv_indeterminate="true"
+        app:cpv_color="@color/white"
+        android:layout_below="@+id/imageView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="57dp" />
 </RelativeLayout>
